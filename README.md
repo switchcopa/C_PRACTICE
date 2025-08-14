@@ -31,6 +31,7 @@ C_PRACTICE/
 │   └── sorting/
 ├── projects/        # Mini-projects & applications
 └── README.md
+```
 
 ---
 
