@@ -16,7 +16,6 @@ int main() {
     while ((c = getchar()) != EOF) {
         if (state == OUT && c != ' ' && c != '\n' && c != '\t') {
             state = IN;
-            word_length++;
         }
 
         else if (state == IN && (c == ' ' || c == '\n' || c == '\t')) {
@@ -24,12 +23,24 @@ int main() {
             len_count[word_length]++;
             word_length = 0;
         }
+
+        if (state == IN) {
+            word_length++;
+        }
     }
     
-    for (i = 0; i < MAX_LENGTH; i++) {
+    for (i = 1; i < MAX_LENGTH; i++) {
         if (len_count[i] == 0) continue;
-
-        printf("There are %d words that are %d letters long.\n", len_count[i], i);
+            
+        printf("%d: ", i); 
+        
+        int count = len_count[i];
+        while (count > 0) {
+            printf("*");
+            count--;
+        }
+        
+        printf("\n");
     }
 
     return 0;
