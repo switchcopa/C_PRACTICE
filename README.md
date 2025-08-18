@@ -17,20 +17,13 @@ From simple exercises to complex projects, everything here represents my growth 
 ## 📂 Repository Structure
 ```bash
 C_PRACTICE/
-│
-├── basics/          # Variables, operators, loops, conditionals
-├── pointers/        # Pointer concepts & memory management
-├── strings/         # String handling and manipulation
-├── structs/         # Structures, typedef, and organization
-├── dsa/             # Data Structures and Algorithms in C
-│   ├── arrays/
-│   ├── linked_lists/
-│   ├── stacks/
-│   ├── queues/
-│   ├── trees/
-│   └── sorting/
-├── projects/        # Mini-projects & applications
-└── README.md
+├── Examples/
+│ └── Functions/
+├── projects/
+├── Exercises/
+├── README.md
+├── .gitignore
+└── .clangd
 ```
 
 ---
