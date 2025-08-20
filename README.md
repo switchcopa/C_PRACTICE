@@ -18,7 +18,6 @@ From simple exercises to complex projects, everything here represents my growth 
 ```bash
 C_PRACTICE/
 ├── Examples/
-│ └── Functions/
 ├── projects/
 ├── Exercises/
 ├── README.md
