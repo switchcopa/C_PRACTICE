@@ -1,11 +1,14 @@
 #ifndef SKILL_TREE_H
-
 #define SKILL_TREE_H
 
 #include <stdio.h>
 #include <stdbool.h>
 
-struct Node* create_node(struct Node* left, struct Node* right, struct Node* parent, const char* name, const char* description, int cost, bool purchased); 
+struct Node; 
+
+typedef struct NodeArgs NodeArgs;
+
+struct Node* create_node(NodeArgs args);
 
 struct Node* init_agility_tree();
 
