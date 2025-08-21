@@ -24,11 +24,13 @@ const char** show_purchased_skills(struct Node* skill_tree, User* usr);
 
 const char** show_skill_tree(struct Node* skill_tree);
 
-bool can_purchase_skill(struct Node* skill_tree, const char* skill, User* usr);
+bool has_skill(struct Node* skill_tree, const char* skill, User* usr);
 
-bool purchase_skill(struct Node* skill_tree, const char* skill, User* usr); 
+bool can_purchase_skill(struct Node* skill_tree, const char* name, User* usr);
 
-bool sell_skill(struct Node* skill_tree, const char* skill, User* usr);
+bool purchase_skill(struct Node* skill_tree, const char* skill_name, User* usr); 
+
+bool sell_skill(struct Node* skill_tree, const char* skill_name, User* usr);
 
 
 #endif // SKILL_TREE_H
