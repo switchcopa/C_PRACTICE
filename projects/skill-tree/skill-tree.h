@@ -6,6 +6,8 @@
 
 struct Node; 
 
+typedef struct User User;
+
 typedef struct NodeArgs NodeArgs;
 
 struct Node* create_node(NodeArgs args);
@@ -16,15 +18,17 @@ struct Node* init_power_tree();
 
 struct Node* init_survivor_tree();
 
-const char** show_purchased_skills(struct Node* skill_tree);
+void init_coins(int amount, User usr);
+
+const char** show_purchased_skills(struct Node* skill_tree, User usr);
 
 const char** show_skill_tree(struct Node* skill_tree);
 
-bool can_purchase_skill(struct Node* skill_tree, const char* skill);
+bool can_purchase_skill(struct Node* skill_tree, const char* skill, User usr);
 
-bool purchase_skill(struct Node* skill_tree, const char* skill); 
+bool purchase_skill(struct Node* skill_tree, const char* skill, User usr); 
 
-bool sell_skill(struct Node* skill_tree, const char* skill);
+bool sell_skill(struct Node* skill_tree, const char* skill, User usr);
 
 
 #endif // SKILL_TREE_H
