@@ -26,6 +26,35 @@ typedef struct NodeArgs {
 } NodeArgs;
 
 
+typedef struct User {
+    int coins;
+    unsigned long id;
+    const char* name;
+    const char* purchased_skills[MAX_PURCHASED_SKILLS];
+    int ptr;
+} User;
+
+User* create_user(int coins, unsigned long id, const char* name) {
+    User* usr = malloc(sizeof(User));
+
+    if (!usr) {
+        printf("Failed to allocate memory.\n");
+        exit(1);
+    }
+
+    usr->coins = coins;
+    usr->id = id;
+    usr->name = name;
+    usr->ptr = 0;
+    
+    for (int i = 0; i < MAX_PURCHASED_SKILLS; i++) {
+        usr->purchased_skills[i] = NULL;
+    }
+
+    return usr;
+}
+
+
 struct Node* create_node(NodeArgs args) {
     struct Node* newnode = malloc(sizeof(struct Node));
 
@@ -187,34 +216,11 @@ struct Node* init_survivor_tree() {
 }
 
 
-const char** show_purchased_skills(struct Node* skill_tree) {
-    const char** purchased_skills = malloc(sizeof(const char*) * MAX_PURCHASED_SKILLS); 
-    int top, ptr;
-    
-    int i;
-    for (i = 0; i < MAX_PURCHASED_SKILLS; i++) {
-        purchased_skills[i] = "0";
-    }
+const char** show_purchased_skills(struct Node* skill_tree, User* usr) {
+    if (usr == NULL) return NULL;
 
-    struct Node* stack[MAX_SIZE];
-    struct Node* curr = skill_tree;
-    top = -1;
-    ptr = 0;
-    
-    while (curr || top != -1) {
-        while (curr) {
-            stack[++top] = curr;
-            curr = curr->left;
-        }
-        
-        curr = stack[top--];
-        if (curr->purchased) purchased_skills[ptr++] = curr->name; 
-        curr = curr->right;
-    }
-
-    return purchased_skills;
+    return usr->purchased_skills;
 }
-
 
 
 const char** show_skill_tree(struct Node* skill_tree) {
@@ -235,4 +241,127 @@ const char** show_skill_tree(struct Node* skill_tree) {
     }
 
     return skill_nodes;
+}
+
+bool has_skill(struct Node* skill_tree, const char* skill_name, User* usr, int* i) {
+    if (usr == NULL) return false;
+
+    for (*i = 0; *i < MAX_PURCHASED_SKILLS; (*i)++) {
+        if (strcmp(usr->purchased_skills[(*i)], skill_name) == 0) {
+            return true; 
+        }
+    }
+
+    return false;
+}
+
+bool can_purchase_skill(struct Node* skill_tree, const char* name, User* usr) {
+    if (usr == NULL) return false;
+ 
+    struct Node* skill = NULL;
+
+    struct Node* queue[MAX_SIZE];
+    struct Node* curr = skill_tree;
+    int front, rear;
+
+    front = rear = 0;
+    queue[rear++] = curr;
+
+    while (rear > front) {
+        struct Node* temp = queue[front++];
+
+        if (strcmp(name, temp->name) == 0) {
+            skill = temp;
+            break;
+        }
+
+        if (temp->left) queue[rear++] = temp->left;
+        if (temp->right) queue[rear++] = temp->right;
+    }
+
+
+    if (skill == NULL) return false;
+   
+    if (usr->coins >= skill->cost) {
+        return true;
+    }
+    
+    else return false;
+}
+
+
+bool purchase_skill(struct Node* skill_tree, const char* skill_name, User* usr) {
+    if (usr == NULL) return false;
+
+    struct Node* queue[MAX_SIZE];
+    struct Node* curr = skill_tree;
+    struct Node* skill = NULL;
+
+    int rear, front;
+    
+    rear = front = 0;
+    queue[rear++] = curr;
+
+    while (rear > front) {
+        struct Node* temp = queue[front++];
+
+        if (strcmp(skill_name, temp->name) == 0) {
+            skill = temp;
+            break;
+        }
+
+        if (temp->left) queue[rear++] = temp->left;
+        if (temp->right) queue[rear++] = temp->right;
+    }
+    
+    if (!skill) return false;
+
+    if (usr->coins >= skill->cost) {
+        usr->coins -= skill->cost;
+        usr->purchased_skills[usr->ptr++] = skill->name;
+        return true;
+    }
+
+    else return false;
+}
+
+
+bool sell_skill(struct Node* skill_tree, const char* skill_name, User* usr) {
+    if (usr == NULL) return false;
+
+    struct Node* queue[MAX_SIZE];
+    struct Node* curr = skill_tree;
+    struct Node* skill = NULL;
+
+    int rear, front;
+    
+    rear = front = 0;
+    queue[rear++] = curr;
+
+    while (rear > front) {
+        struct Node* temp = queue[front++];
+
+        if (strcmp(skill_name, temp->name) == 0) {
+            skill = temp;
+            break;
+        }
+
+        if (temp->left) queue[front++] = temp->left;
+        if (temp->right) queue[front++] = temp->right;
+    }
+
+    if (!skill) return false;
+    
+    int i;
+    bool found = has_skill(skill_tree, skill_name, usr, &i);
+    if (!found) return false;
+    
+    else {
+        usr->coins += skill->cost;
+        usr->purchased_skills[i] = usr->purchased_skills[usr->ptr];
+        usr->purchased_skills[usr->ptr] = NULL;
+        usr->ptr--;
+    } 
+
+    return true;
 }
