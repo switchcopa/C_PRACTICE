@@ -24,7 +24,7 @@ const char** show_purchased_skills(struct Node* skill_tree, User* usr);
 
 const char** show_skill_tree(struct Node* skill_tree);
 
-bool has_skill(struct Node* skill_tree, const char* skill_name, User* usr);
+bool has_skill(struct Node* skill_tree, const char* skill_name, User* usr, int* i);
 
 bool can_purchase_skill(struct Node* skill_tree, const char* name, User* usr);
 
