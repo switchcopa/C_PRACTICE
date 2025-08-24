@@ -7,6 +7,7 @@
 
 #define MAX_PURCHASED_SKILLS 15
 #define MAX_SIZE 100
+#define MAX_TREE_SKILLS 5
 
 struct Node {
     struct Node* left;
@@ -216,7 +217,7 @@ struct Node* init_survivor_tree() {
 }
 
 
-const char** show_purchased_skills(struct Node* skill_tree, User* usr) {
+const char** show_purchased_skills(User* usr) {
     if (usr == NULL) return NULL;
 
     return usr->purchased_skills;
@@ -224,8 +225,8 @@ const char** show_purchased_skills(struct Node* skill_tree, User* usr) {
 
 
 const char** show_skill_tree(struct Node* skill_tree) {
-    const char** skill_nodes = malloc(sizeof(const char*) * MAX_PURCHASED_SKILLS);
-    
+    const char** skill_nodes = malloc(sizeof(const char*) * MAX_TREE_SKILLS);
+
     struct Node* queue[MAX_SIZE];
     struct Node* curr = skill_tree;
     int rear, front, ptr;
@@ -242,6 +243,32 @@ const char** show_skill_tree(struct Node* skill_tree) {
 
     return skill_nodes;
 }
+
+
+struct Node* find_node(struct Node* skill_tree, const char* skill_name) {
+  struct Node* queue[MAX_SIZE];
+  struct Node* curr = skill_tree;
+  struct Node* skill = NULL;
+  int rear, front;
+
+  rear = front = 0;
+  queue[rear++] = curr; 
+
+  while (rear > front) {
+    struct Node* temp = queue[front++];
+
+    if (strcmp(temp->name, skill_name) == 0) {
+      skill = temp;
+      break;
+    }
+
+    if (temp->left) queue[rear++] = temp->left;
+    if (temp->right) queue[rear++] = temp->right;
+  }
+
+  return skill;
+}
+
 
 bool has_skill(struct Node* skill_tree, const char* skill_name, User* usr, int* i) {
     if (usr == NULL) return false;
@@ -281,7 +308,12 @@ bool can_purchase_skill(struct Node* skill_tree, const char* name, User* usr) {
 
 
     if (skill == NULL) return false;
-   
+  
+    for (int i = 0; i < MAX_PURCHASED_SKILLS; i++) {
+      if (usr->purchased_skills[i] == NULL) break;
+      if (strcmp(usr->purchased_skills[i], skill->name) == 0) return false;
+    }
+
     if (usr->coins >= skill->cost) {
         return true;
     }
@@ -316,13 +348,17 @@ bool purchase_skill(struct Node* skill_tree, const char* skill_name, User* usr) 
     
     if (!skill) return false;
 
-    if (usr->coins >= skill->cost) {
+     if (usr->coins >= skill->cost) {
         usr->coins -= skill->cost;
         usr->purchased_skills[usr->ptr++] = skill->name;
+        printf("Successfully purchased skill \"%s\"\n", skill->name);
         return true;
     }
 
-    else return false;
+     else {
+       printf("Failed to buy skill \"%s\"\n", skill->name);
+       return false;
+    }
 }
 
 
