@@ -27,8 +27,9 @@ int main() {
 }
 
 uint16_t getline(char destination[], uint16_t max_size) {
-    int c, nchars;
-    
+    int c ;
+    uint16_t nchars; 
+
     nchars = 0;
     while ((c = getchar()) != EOF) {
         if (c == '\n') break; 
@@ -44,7 +45,7 @@ uint16_t getline(char destination[], uint16_t max_size) {
 void copy(char from[], char to[]) {
     int i, c;
 
-    for (i = 0; i < MAX_LINE && from[i] != '\0'; i++) {
+    for (i = 0; from[i] != '\0'; i++) {
         c = from[i];
         to[i] = c;
     }
