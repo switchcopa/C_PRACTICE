@@ -1,7 +1,7 @@
 #include <stdio.h> 
 #include <stdint.h>
 
-#define MAX_LINE 1000 
+#define MAX_LINE 1000
 
 uint16_t getline(char destnation[], uint16_t max_size);
 void copy(char from[], char to[]);
@@ -31,14 +31,15 @@ uint16_t getline(char destination[], uint16_t max_size) {
     uint16_t nchars; 
 
     nchars = 0;
-    while ((c = getchar()) != EOF) {
-        if (c == '\n') break; 
-        else if (nchars == max_size - 1) break;
-    
-        destination[nchars++] = c;
+    while ((c = getchar()) != EOF && (c != '\n')) {
+        if (nchars < max_size - 1) {
+            destination[nchars] = c;
+        }
+        
+        nchars++;
     }
     
-    destination[nchars] = '\0';
+    destination[max_size - 1] = '\0';
     return nchars;
 }
 
