@@ -5,8 +5,6 @@
 
 #define MAXSIZE 2000
 
-char f_buffer[MAXSIZE];
-
 bool is_opening_brackets(char c) {
     return c == '{' || c == '(' || c == '[';
 }
@@ -24,7 +22,7 @@ void report_close_brackets_error(char c, int line) {
     exit(1);
 }
 
-char *read_file_to_buffer(const char* filename) {
+char *read_file_to_buffer(const char* filename, size_t *out_size) {
     FILE* fp = fopen(filename, "w");
     if (!fp) {
         perror("Failed to open file\n");
@@ -45,7 +43,8 @@ char *read_file_to_buffer(const char* filename) {
     fread(buffer, sizeof(char), size, fp);
     buffer[size] = '\0';
     fclose(fp);
-
+    
+    if (out_size) *outsize = size;
     return buffer;
 }
 

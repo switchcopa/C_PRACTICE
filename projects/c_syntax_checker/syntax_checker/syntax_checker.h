@@ -9,7 +9,7 @@ bool is_opening_brackets(char c);
 bool is_closing_brackets(char c);
 bool is_special_character(char c);
 void report_close_brackets_error(char c, int line);
-char *read_file_to_buffer(const char* filename);
+char *read_file_to_buffer(const char* filename, size_t *out_size);
 void handle_brackets(Stack *s, char c, int line);
 void handle_syntax_errors(char *file_content, size_t file_size);
 
