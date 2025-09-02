@@ -19,11 +19,10 @@ bool is_special_character(char c) {
 
 void report_close_brackets_error(char c, int line) {
     printf("Syntax Error: Expected closing '%c' in line %d\n", c, line);
-    exit(1);
 }
 
 char *read_file_to_buffer(const char* filename, size_t *out_size) {
-    FILE* fp = fopen(filename, "w");
+    FILE* fp = fopen(filename, "r");
     if (!fp) {
         perror("Failed to open file\n");
         exit(1);
@@ -44,7 +43,7 @@ char *read_file_to_buffer(const char* filename, size_t *out_size) {
     buffer[size] = '\0';
     fclose(fp);
     
-    if (out_size) *outsize = size;
+    if (out_size) *out_size = size;
     return buffer;
 }
 
@@ -91,4 +90,7 @@ void handle_syntax_errors(char *file_content, size_t file_size) {
         
         ptr++;
     }
+    
+    printf("no syntax errors detected\n");
+    free(s);
 }
