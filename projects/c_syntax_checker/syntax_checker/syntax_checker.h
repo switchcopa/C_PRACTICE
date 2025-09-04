@@ -5,6 +5,13 @@
 #include <stdbool.h>
 #include "../stack/stack.h"
 
+typedef enum {
+    IN_COMMENT,
+    IN_LINE_COMMENT,
+    IN_QUOTES,
+    IN_DOUBLE_QUOTES
+} State;
+
 bool is_opening_brackets(char c);
 bool is_closing_brackets(char c);
 bool is_special_character(char c);
