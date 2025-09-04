@@ -31,16 +31,16 @@ void popStack(Stack *s) {
     s->top--;
 }
 
-void pushStack(Stack *s, char c) {
+void pushStack(Stack *s, Pair* pair) {
     if (isFull(s)) {
         printf("cannot push to full stack, stack overflow error\n");
         exit(1);
     }
 
-    s->arr[++s->top] = c;
+    s->arr[++s->top] = pair;
 }
 
-char peekStack(Stack *s) {
+Pair* peekStack(Stack *s) {
     if (isEmpty(s)) {
         printf("cannot peek empty stack\n");
         exit(1);
