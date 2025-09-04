@@ -8,9 +8,10 @@
 typedef enum {
     IN_NONE,
     IN_COMMENT,
+    IN_BLOCK_COMMENT,
     IN_LINE_COMMENT,
-    IN_QUOTES,
-    IN_DOUBLE_QUOTES
+    IN_SINGLE_QUOTE,
+    IN_DOUBLE_QUOTE
 } State;
 
 bool is_opening_brackets(char c);
