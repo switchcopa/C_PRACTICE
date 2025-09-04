@@ -6,6 +6,7 @@
 #include "../stack/stack.h"
 
 typedef enum {
+    IN_NONE,
     IN_COMMENT,
     IN_LINE_COMMENT,
     IN_QUOTES,
