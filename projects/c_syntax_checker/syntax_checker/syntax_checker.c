@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include "../stack/stack.h"
 #include "syntax_checker.h"
+#include "../error_pair/error_pair.h"
 
 #define MAXSIZE 2000
+bool has_errors = false;
 
 bool is_opening_brackets(char c) {
     return c == '{' || c == '(' || c == '[';
@@ -15,6 +17,12 @@ bool is_closing_brackets(char c) {
 
 bool is_special_character(char c) {
     return c == '\'' || c == '\"' || c == '\\';
+}
+
+bool is_matching_brackets(char c_0, char c_1) {
+    return ((c_0 == '{' && c_1 == '}')) ||
+            ((c_0 == '(' && c_1 == ')')) ||
+            ((c_0 == '[' && c_1 == ']'));
 }
 
 void report_close_brackets_error(char c, int line) {
@@ -45,52 +53,4 @@ char *read_file_to_buffer(const char* filename, size_t *out_size) {
     
     if (out_size) *out_size = size;
     return buffer;
-}
-
-void handle_brackets(Stack* s, char c, int line) {
-    if (is_opening_brackets(c)) {
-        pushStack(s, c);
-    }
-
-    else if (is_closing_brackets(c)) {
-        char t = peekStack(s);
-
-        if (t != c) report_close_brackets_error(c, line);
-        else popStack(s);
-    }
-}
-
-void handle_special_characters(Stack *s, char c, int line) {
-    if (is_special_character(c)) {
-        char t = peekStack(s);
-
-        if (is_special_character(t) && t == c) {
-            popStack(s);
-        }
-
-        else report_close_brackets_error(c, line);
-    }
-}
-
-void handle_syntax_errors(char *file_content, size_t file_size) {
-    int c, ptr, nl; 
-    Stack* s = init_stack();
-    
-    ptr = nl = 0;
-    c = file_content[ptr];
-    while ((c = file_content[ptr]) != '\0' && file_size > ptr) {
-        if (c == '\n') {
-            nl++;
-            ptr++;
-            continue;
-        }
-
-        handle_brackets(s, c, nl);
-        handle_special_characters(s, c, nl);
-        
-        ptr++;
-    }
-    
-    printf("no syntax errors detected\n");
-    free(s);
 }

@@ -28,7 +28,7 @@ void popStack(Stack *s) {
         exit(1);
     }
 
-    s->top--;
+    free(s->arr[s->top--]);
 }
 
 void pushStack(Stack *s, Pair* pair) {
