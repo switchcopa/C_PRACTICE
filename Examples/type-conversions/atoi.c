@@ -1,5 +1,3 @@
-#include <stdio.h> 
-
 int atoi(char s[]) {
     int i, res;
 
