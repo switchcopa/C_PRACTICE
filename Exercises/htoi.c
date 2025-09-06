@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define MAXSIZE 1000
+#define MAXSIZE 17
 
 char line[MAXSIZE];
 
@@ -17,7 +17,7 @@ int main(void) {
     while ((len = getline()) > 0) {
         res = htoi(line);
 
-        printf("the hex value of the input is: %llu\n", res);
+        printf("the hex value of the input is: %llu with length %d\n", res, len);
     }
 
     return 0;
@@ -63,7 +63,7 @@ int getline() {
     
     i = 0;
     while ((c = getchar()) != EOF && c != '\n') {
-        if (i < MAXSIZE - 2) 
+        if (i < MAXSIZE - 1) 
             line[i] = c;
 
         i++;
