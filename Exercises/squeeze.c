@@ -4,8 +4,8 @@
 void squeeze(char s[], char t[]);
 
 int main(void) {
-    char s[6] = "hello\0";
-    char t[5] = "wrld\0";
+    char s[] = "hello";
+    char t[] = "wrld";
 
     squeeze(s, t);
 
@@ -15,20 +15,15 @@ int main(void) {
 }
 
 void squeeze(char s[], char t[]) {
-    int i, j, k; 
-    bool to_remove;
+    char seen[256] = {false};
+    int i, c, k;
+    
+    for (i = 0; (c = (unsigned char) t[i]) != '\0'; i++) 
+        seen[c] = true;
 
-    for (i = k = 0; s[i] != '\0'; i++) {
-        to_remove = false;
-
-        for (j = 0; t[j] != '\0'; j++) {
-            if (s[i] == t[j]) {
-                to_remove = true;
-                break;
-            }
-        }
-
-        if (!to_remove) s[k++] = s[i];
+    for (i = k = 0; (c = (unsigned char) s[i]) != '\0'; i++) {
+        if (!seen[c]) 
+            s[k++] = c;
     }
 
     s[k] = '\0';
