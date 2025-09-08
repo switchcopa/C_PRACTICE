@@ -1,5 +1,4 @@
 #include <stdio.h> 
-#include <string.h>
 #include <stdlib.h>
 
 char* get_binary(int x);
@@ -7,7 +6,7 @@ char* get_binary(int x);
 int main(void) {
 	int x;
 
-	x = 14;
+	x = 5381;
 	char* b = get_binary(x);
 	printf("%s\n", b);
 
@@ -16,25 +15,21 @@ int main(void) {
 }
 
 char* get_binary(int x) {
-	int i, size;
+	int i, bits;
 	char* b;
 	
-	size = 32, i = size - 1; 
-	b = malloc(sizeof(char) * (size + 1)); // assume a 32-bit int
+	bits = sizeof(int) * 8, i = bits - 1; 
+	b = malloc(bits + 1);
 	if (!b) {
 		printf("failed to allocate memory for buffer\n");
 		exit(1);
 	}	
-	
-	while (x > 0)	{
-		b[i--] = (x % 2) + '0';
-		x /= 2;
-	}
-
-	b[size] = '\0';
-
-	char* result = strdup(&b[i + 1]);
-	free(b);	
-
-	return result;
+        
+        for (; i >= 0; i--) {
+                b[i] = (x & 1) + '0';
+                x >>= 1;
+        }
+        
+        b[bits] = '\0';
+        return b;
 }
