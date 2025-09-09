@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+/* the problem says: write a function setbits, that returns x with the n bits that begin at position p set to the rightmost n bits of y, leaving the other bits unchanged.*/
+
 unsigned setbits(unsigned int x, int pos, int n, int y);
 
 int main(void) {
