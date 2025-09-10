@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX_KEY_VALUE_SIZE 20
+
 node* create_node(char* key, char* value) {
         node* new_node = malloc(sizeof(node));
         if (!new_node) {
@@ -10,8 +12,10 @@ node* create_node(char* key, char* value) {
                 return NULL;
         }
 
-        new_node->key = key;
-        new_node->value = value;
+        new_node->key = malloc(sizeof(char) * 20);
+        strcpy(new_node->key, key);
+        new_node->value = malloc(sizeof(char) * 20);
+        strcpy(new_node->value, value);
         new_node->next = NULL;
 
         return new_node;
