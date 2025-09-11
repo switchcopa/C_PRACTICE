@@ -2,6 +2,7 @@
 #include <stdio.h> 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define MAX_KEY_VALUE_SIZE 20
 
@@ -21,22 +22,27 @@ node* create_node(char* key, char* value) {
         return new_node;
 }
 
-void delete_node(node** head, char* target_key) {
-        if (!(*head)) return;
+bool delete_node(node** head, char* target_key) {
+        if (!(*head)) return false;
 
         if (strcmp((*head)->key, target_key)) { 
                 (*head) = (*head)->next;
-                return;
+                return true;
         }
 
         while(*head && (*head)->next) {
                 if (strcmp((*head)->key, target_key)) { 
                         (*head)->next = (*head)->next->next; 
+                        return true;
                 }
         }
+
+        return true;
 }
 
 void insert_node(node** head, node* node_to_insert) {
+        if (node_to_insert == NULL) return;
+
         if (*head == NULL) {
                 (*head) = node_to_insert;
                 return;
