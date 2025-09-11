@@ -13,9 +13,9 @@ node* create_node(char* key, char* value) {
                 return NULL;
         }
 
-        new_node->key = malloc(sizeof(char) * 20);
+        new_node->key = malloc(sizeof(char) * MAX_KEY_VALUE_SIZE);
         strcpy(new_node->key, key);
-        new_node->value = malloc(sizeof(char) * 20);
+        new_node->value = malloc(sizeof(char) * MAX_KEY_VALUE_SIZE);
         strcpy(new_node->value, value);
         new_node->next = NULL;
 
@@ -37,7 +37,7 @@ bool delete_node(node** head, char* target_key) {
                 }
         }
 
-        return true;
+        return false;
 }
 
 void insert_node(node** head, node* node_to_insert) {
@@ -50,4 +50,17 @@ void insert_node(node** head, node* node_to_insert) {
         
         node_to_insert->next = *head;
         (*head) = node_to_insert;
+}
+
+char* find_node(node** head, char* key) {
+        if (!(*head)) return NULL;
+
+        while(*head && (*head)->next) {
+                if (strcmp((*head)->key, key)) { 
+                        return (*head)->value;        
+                }
+        }
+
+        return NULL;
+
 }
