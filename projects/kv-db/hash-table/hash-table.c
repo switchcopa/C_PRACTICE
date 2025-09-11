@@ -16,7 +16,8 @@ h_table* create_table() {
         for (i = 0; i < MAX_TABLE_SIZE; i++) { 
                 table->buckets[i] = NULL;
         }
-
+        
+        table->size = MAX_TABLE_SIZE;
         table->num_of_elements = 0;
         return table;
 }
@@ -82,4 +83,25 @@ bool ht_delete_entry(h_table* table, char* key) {
         else printf("failed to delete entry, key doesn't exist\n");
 
         return succ;
+}
+
+char* ht_get_entry(h_table* table, char* key) {
+        if (!table) {
+                printf("hash table is NULL\nexiting now...\n");
+                exit(1);
+        }
+        
+        unsigned int hash_val = hash(key);
+        char* val = find_node(&table->buckets[hash_val], key);
+
+        if (!val) {
+                printf("failed to get key \"%s\", key doesn't exist\n", key);
+                return NULL;
+        }
+
+        return val; 
+}
+
+float ht_lfactor(h_table *table) {
+        return (float) table->num_of_elements / (float) table->size;
 }
