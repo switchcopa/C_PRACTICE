@@ -1,7 +1,7 @@
 #ifndef HASH_TABLE_H 
 #define HASH_TABLE_H 
 
-#include "node.h"
+#include "../node_h/node.h"
 #include <stdbool.h>
 #include <stdlib.h>
 

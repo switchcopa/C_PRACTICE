@@ -1,6 +1,6 @@
 #include <stdio.h> 
 #include "hash-table.h"
-#include "node.h"
+#include "../node_h/node.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h> 
@@ -43,6 +43,10 @@ bool ht_create_entry(h_table* table, char *key, char *value) {
         if (!table) {
                 printf("hash table is NULL\nexiting now...\n"); 
                 exit(1);
+        }
+        
+        if (ht_lfactor(table) >= 0.75f) {
+                ht_rehash(&table);
         }
 
         int i, k_len, v_len;

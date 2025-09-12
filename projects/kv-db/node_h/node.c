@@ -25,13 +25,13 @@ node* create_node(char* key, char* value) {
 bool delete_node(node** head, char* target_key) {
         if (!(*head)) return false;
 
-        if (strcmp((*head)->key, target_key)) { 
+        if (strcmp((*head)->key, target_key) == 0) { 
                 (*head) = (*head)->next;
                 return true;
         }
 
         while(*head && (*head)->next) {
-                if (strcmp((*head)->key, target_key)) { 
+                if (strcmp((*head)->key, target_key) == 0) { 
                         (*head)->next = (*head)->next->next; 
                         return true;
                 }
@@ -56,7 +56,7 @@ char* find_node(node** head, char* key) {
         if (!(*head)) return NULL;
 
         while(*head && (*head)->next) {
-                if (strcmp((*head)->key, key)) { 
+                if (strcmp((*head)->key, key) == 0) { 
                         return (*head)->value;        
                 }
         }
