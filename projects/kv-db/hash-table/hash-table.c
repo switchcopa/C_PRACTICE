@@ -36,7 +36,7 @@ unsigned long hash(char* key) {
 }
 
 bool is_valid_character(char c) {
-        return (c <= 'Z' && c >= 'A') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
+        return (c <= 'Z' && c >= 'A') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || (c == ' ');
 }
 
 bool ht_create_entry(h_table* table, char *key, char *value) {
@@ -121,6 +121,7 @@ void ht_rehash(h_table** table_ref) {
         int i, h_v; 
         bool succ;
         node* n_head;
+        node* temp;
         h_table* new_table = create_table((*table_ref)->size);
         if (!new_table) {
                 printf("failed to rehash table\n");
@@ -129,15 +130,23 @@ void ht_rehash(h_table** table_ref) {
 
         for (i = 0; i < (*table_ref)->size; i++) {
                 n_head = (*table_ref)->buckets[i];
+        
+                while (n_head) {
+                        temp = n_head;
 
-                for (; n_head == NULL || n_head->next == NULL;) {
                         h_v = hash(n_head->key);
                         succ = ht_create_entry(new_table, n_head->key, n_head->value);
+        
+                        n_head = n_head->next;
+                        free(temp->key);
+                        free(temp->value);
+                        free(temp);
 
                         if (!succ) printf("rehash warning: failed to map entry to new table\n");
                 }
-        }
 
+        }
+        
         printf("successfully rehashed table\n");
 }
 
@@ -153,42 +162,45 @@ h_table* ht_open(const char* ht_filename) {
                 printf("failed to load table from file \"%s\"\n", ht_filename);
                 return NULL;
         }
+
+	else {
+		printf("successfully loaded table from file \"%s\"\n", ht_filename);
+	}
         
-        int i, j, k;
-        bool in_word;
-        size_t len, f_len;
-        unsigned int hash_val;
-
-        fseek(fp, 0, SEEK_SET);
-        f_len = ftell(fp);
-
         char buffer[MAX_BUFFER_SIZE];
         char key[MAX_KEY_VALUE_SIZE];
         char value[MAX_KEY_VALUE_SIZE];
+        int i, j, k;
+        size_t len, f_len;
+        unsigned int hash_val;
+
+        fseek(fp, 0, SEEK_END);
+        f_len = ftell(fp);
+        rewind(fp);
+
         len = fread(buffer, sizeof(char), f_len, fp);
-        rewind(fp); 
+        buffer[len] = '\0'; 
         
-        for (i = 0; i < MAX_BUFFER_SIZE && buffer[i] != '\0'; i++) {
-                k = 0;
-                for (j = i; k < MAX_KEY_VALUE_SIZE - 1 && buffer[j] != ' '; j++) 
-                        key[k++] = buffer[j];
-                
-                j++;
-                key[k] = '\0';
-                for (k = 0; k < MAX_KEY_VALUE_SIZE - 1 && buffer[j] != ' ' && buffer[j] != '\n'; j++) 
-                        value[k++] = buffer[j];
-                value[k] = '\0';
-                node* newnode = create_node(key, value);
-                if (!newnode) {
-                        printf("failed to create entry from file\n");
-                        return NULL;
+        for (i = j = k = 0; i < len && buffer[i] != '\0'; i++) {
+                while (buffer[i] != ' ' && j < MAX_KEY_VALUE_SIZE - 1) {
+                        key[j] = buffer[i];
+                        j++;
+                        i++;
                 }
-                
-                hash_val = hash(key);
-                insert_node(&table->buckets[hash_val], newnode);
-                i = ++j;
+                key[j] = '\0';
+                j = 0;
+
+                while (buffer[i] != '\n' && j < MAX_KEY_VALUE_SIZE - 1) {
+                        value[j] = buffer[i];
+                        j++;
+                        i++;
+                }
+                value[j] = '\0';
+                j = 0;
+
+                ht_create_entry(table, key, value);
         }
-        
+
         fclose(fp);
         return table;
 }
@@ -200,23 +212,29 @@ bool ht_save(h_table* table, const char* ht_filename) {
                 return false;
         }
         
-        int i, k;
+        int i;
         size_t bytes_written, buffer_size;
         node* n_node;
         char buffer[MAX_BUFFER_SIZE];
-
+        size_t key_len, val_len;
+        
         for (i = 0, buffer_size = 0; i < table->size; i++) {
                 n_node = table->buckets[i];
-                if (n_node == NULL) continue;
-                
-                for (; n_node->key[buffer_size] != '\0'; buffer_size++) buffer[buffer_size] = n_node->key[buffer_size];
-                buffer[++buffer_size] = ' ';
-
-                for (; n_node->value[buffer_size] != '\0'; buffer_size++) buffer[buffer_size] = n_node->value[buffer_size];
-                buffer[++buffer_size] = '\n';
+        
+                for (; n_node != NULL; n_node = n_node->next) {
+                        key_len = strlen(n_node->key);
+                        memcpy(buffer + buffer_size, n_node->key, key_len);
+                        buffer_size += key_len;
+                        buffer[buffer_size++] = ' ';
+        
+                        val_len = strlen(n_node->value);
+                        memcpy(buffer + buffer_size, n_node->value, val_len);
+                        buffer_size += val_len;
+                        buffer[buffer_size++] = '\n';
+                }
         }
 
-        buffer[++buffer_size] = '\0'; 
+        buffer[buffer_size] = '\0'; 
         bytes_written = fwrite(buffer, sizeof(char), buffer_size, fp);
         if (bytes_written != buffer_size) {
                 printf("failed to save data to file\n");
@@ -231,18 +249,21 @@ bool ht_save(h_table* table, const char* ht_filename) {
 }
 
 void ht_free(h_table* table) {
-        int i, j;
-        node* node; 
+        int i;
+        node* curr; 
+        node* temp;
 
         for (i = 0; i < table->size; i++) {
                 if (table->buckets[i] == NULL) continue;
         
-                node = table->buckets[i];
-                for (j = 0; node && node->next; j++) {
-                        delete_node(&table->buckets[i], node->key);
-                        free(node->key);
-                        free(node->value);
-                        free(node);
+                curr = table->buckets[i];
+                while (curr) {
+                        temp = curr;
+                        curr = curr->next;
+
+                        free(temp->key);
+                        free(temp->value);
+                        free(temp);
                 }
         }
 

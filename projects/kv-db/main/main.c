@@ -5,193 +5,170 @@
 #include "../node_h/node.h"
 #include "../hash-table/hash-table.h"
 
-h_table* handle_init();
-void handle_command(h_table* table);
-void handle_entry_creation(char cmd[], h_table* table);
-void handle_entry_deletion(char cmd[], h_table* table);
-void handle_entry_get(char cmd[], h_table* table);
-bool handle_quit(char cmd[]);
-void handle_save(char cmd[], h_table* table);
+h_table* handle_init(char filename[]);
+void handle_command();
+void handle_debug(h_table* table);
+void handle_entry_creation(h_table* table);
+void handle_entry_deletion(h_table* table);
+void handle_entry_get(h_table* table);
+void handle_help();
+void handle_exit(h_table* table, const char* db_filename);
 
 int main(void) {
-        h_table* table = handle_init();         
-        bool should_quit;
-        
-        if (!table) {
-                printf("failed to initialize table, quitting now...\n");
-                exit(1);
-        }
-        
-        handle_command(table);
+	handle_command();
+
         return 0;
 }
 
-h_table* handle_init() {
-        char buffer[4];
+h_table* handle_init(char filename[]) {
+	char op[6];
+        const char* db_name = "kitty-db.txt";
+	h_table* table;
+
+	printf("===> Welcome to kitty-db! <===\n\n");
+	printf("To seek help, type \"help\"\n");
+	
+	printf("Do you want to create a new db? (yes/no) ");
+	
+	scanf("%5s", op);
+	if (strcmp(op, "yes") == 0) {
+		table = create_table(MAX_TABLE_SIZE);
+                memcpy(filename, db_name, strlen(db_name));
+	}
+
+	else {
+		printf("\nEnter file name: ");
+		scanf("%31s", filename);
+		table = ht_open(filename);
+	}
+	
+	if (!table) {
+		printf("table is NULL, exiting now...\n");
+		exit(1);
+	}
+
+
+	return table;
+}
+
+void handle_entry_deletion(h_table* table) {
+	char key[MAX_KEY_VALUE_SIZE];
+	
+	printf("Enter key: ");
+	scanf("%19s", key);
+	
+	ht_delete_entry(table, key);
+}
+
+void handle_debug(h_table* table) {
+	if (table->num_of_elements == 0) {
+		printf("table is empty!\n");
+		return;
+	}
+
+	int i;
+	char key[MAX_KEY_VALUE_SIZE];
+	char value[MAX_KEY_VALUE_SIZE];
+	node* head;
+
+	for (i = 0; i < table->size; i++) {
+		head = table->buckets[i];
+		if (head == NULL) continue;
+	
+		while (head != NULL) {
+			printf("[%s:%s]->", head->key, head->value);
+			head = head->next;
+		}
+		
+		printf("NULL\n");
+	}
+
+        printf("number of elements: %d\n", table->num_of_elements);
+}
+
+void handle_entry_creation(h_table* table) {
+	if (!table) {
+		printf("table is NULL, exiting now...\n");
+		exit(1);
+	}
+
+	char key[MAX_KEY_VALUE_SIZE];
+	char value[MAX_KEY_VALUE_SIZE];
+	bool succ;
+
+	printf("Enter key: ");
+	scanf("%19s", key);
+	printf("Enter value: ");
+	scanf("%19s", value);
+
+	succ = ht_create_entry(table, key, value);
+	if (succ) {
+		printf("successfully created key-value pair \"%s\" : \"%s\"\n", key, value);
+	}
+}
+
+void handle_exit(h_table* table, const char* db_filename) {
+        ht_save(table, db_filename);
+        ht_free(table);
+}
+
+void handle_entry_get(h_table* table) {
+        char* value;
+        char key[32];
+        unsigned long hash_val;
+        
+        printf("Enter key: ");
+        scanf("%31s", key);
+
+        value = ht_get_entry(table, key);
+
+        if (value) printf("found value: \"%s\"\n", value);
+}
+
+void handle_help() {
+        printf("Type:\n");
+        printf("\tcreate\t\tto create a key value pair\n");
+        printf("\tdelete\t\tto delete a pair\n");
+        printf("\t   get\t\tto get a value from a key\n");
+        printf("\t  exit\t\tto save and exit program\n");
+        printf("\t debug\t\tto debug and show table\n");
+}
+
+void handle_command() {
+	h_table* table; 
+	char cmd[32];
         char filename[32];
-        int c, i;
-        h_table* table;
+	
+	table = handle_init(filename);
+	
+	while (true) {
+		printf("kitty-db> ");
+		
+		scanf("%31s", cmd);
+		if (strcmp(cmd, "create") == 0) 
+			handle_entry_creation(table);
 
-        printf("=====> Welcome to Kitty-db! <=====\n\n");
-        printf("Do you want to create a new file? (yes/no)\n");
-        
-        i = 0;
-        while ((c = getchar()) != EOF && c != '\n' && i < 3) buffer[i++] = c;
-        buffer[i] = '\0';
+                else if (strcmp(cmd, "debug") == 0) 
+			handle_debug(table);
 
-        if (strcmp(buffer, "yes") == 0) {
-                table = create_table(MAX_TABLE_SIZE);
-        }
+                else if (strcmp(cmd, "delete") == 0) 
+			handle_entry_deletion(table);
+                
+                else if (strcmp(cmd, "get") == 0) {
+                        handle_entry_get(table);
+                }
 
-        else {
-                printf("Enter file name:\n");
-                scanf("%31s", filename);
-
-                table = ht_open(filename);
-                if (table) {
-                        printf("successfully opened file \"%s\"\n", filename);
-                        printf("type \"help\" if you want to show commands\n");
-                } 
-
-                else return NULL;
-        }
-
-        return table; 
-}
-
-void handle_entry_creation(char cmd[], h_table* table) {
-        if (!table) {
-                printf("table is NULL, exiting now...\n");
-                exit(1);
-        }
-
-        char operation[12];
-        char entry[MAX_KEY_VALUE_SIZE];
-        char value[MAX_KEY_VALUE_SIZE];
-        int i;
-        bool success;
-
-        for (i = 0; cmd[i] != '\0' && cmd[i] != ' ' && i < 7; i++) 
-                operation[i] = cmd[i];
-
-        operation[++i] = '\0';        
-        
-        printf("operation: %s\n", operation);
-        if (strcmp(operation, "create") != 0) return;
-
-        for (i++; cmd[i] != ' ' && cmd[i] != '\0' && i < MAX_KEY_VALUE_SIZE - 1; i++) 
-                entry[i] = cmd[i];
-
-        entry[++i] = '\0';
-
-        for (i++; cmd[i] != '\0' && cmd[i] != ' ' && i < MAX_KEY_VALUE_SIZE - 1; i++) 
-                value[i] = cmd[i];
-
-        value[++i] = '\0';
-        
-        success = ht_create_entry(table, entry, value);
-        if (success) printf("successfully created entry!\n");
-}
-
-void handle_entry_deletion(char cmd[], h_table* table) {
-        if (!table) {
-                printf("table is NULL, exiting now...\n");
-                exit(1);
-        }
-
-        char operation[12];
-        char key[MAX_KEY_VALUE_SIZE];
-        int i; 
-
-        for (i = 0; i < 11 && cmd[i] != ' '; i++) 
-                operation[i] = cmd[i];
-
-        operation[++i] = '\0';
-        if (strcmp(operation, "remove") != 0) return;
-        
-        for (i++; i < MAX_KEY_VALUE_SIZE - 1; i++)
-                key[i] = cmd[i];
-        key[++i] = '\0';
-
-        ht_delete_entry(table, key);
-}
-
-void handle_entry_get(char cmd[], h_table* table) {
-        if (!table) {
-                printf("table is NULL, exiting now...\n");
-                exit(1);
-        }
-
-        char operation[12];
-        char key[MAX_KEY_VALUE_SIZE];
-        int i; 
-
-        for (i = 0; i < 11 && cmd[i] != ' '; i++) 
-                operation[i] = cmd[i];
-
-        operation[++i] = '\0';
-        if (strcmp(operation, "get") != 0) return;
-        
-        for (i++; i < MAX_KEY_VALUE_SIZE - 1; i++)
-                key[i] = cmd[i];
-        key[++i] = '\0';
-
-        char* val = ht_get_entry(table, key);
-        if (val) printf("Value for key \"%s\" found: %s\n", key, val);
-}
-
-void handle_save(char cmd[], h_table* table) {
-        if (!table) {
-                printf("table is NULL, exiting now...\n");
-                exit(1);
-        }
-
-        char operation[12];
-        char filename[16];
-        int i; 
-
-        for (i = 0; i < 11 && cmd[i] != ' '; i++) 
-                operation[i] = cmd[i];
-
-        operation[++i] = '\0';
-        if (strcmp(operation, "save") != 0) return;
-        for (i++; i < 15; i++)
-                filename[i] = cmd[i];
-        filename[++i] = '\0';
-
-
-        ht_save(table, filename); 
-}
-
-bool handle_quit(char cmd[]) {
-        if (strcmp(cmd, "quit") == 0) {
-                return true;
-        }
-
-        else return false;
-}
-
-void handle_command(h_table* table) {
-        if (!table) {
-                printf("table is NULL, exiting now...\n");
-                exit(1);
-        }
-        
-        while (1) {
-                char cmd[32];
-
-                printf("kitty-db> ");
-                scanf("%31s", cmd); 
-               
-                handle_entry_creation(cmd, table);
-                handle_entry_get(cmd, table);
-                handle_entry_deletion(cmd, table);
-                handle_save(cmd, table);
-
-                if (handle_quit(cmd)) {
-                        ht_save(table, "kitty-db.txt");
-                        ht_free(table);
+                else if (strcmp(cmd, "exit") == 0) {
+                        handle_exit(table, filename);
                         break;
                 }
-        }        
+                
+                else if (strcmp(cmd, "help") == 0) {
+                        handle_help();
+                }
+                
+                else {
+                        printf("Unknown command: \"%s\"\n", cmd);
+                }
+	}
 }
