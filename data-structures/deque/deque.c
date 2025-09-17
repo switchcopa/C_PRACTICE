@@ -28,13 +28,13 @@ bool is_empty(deque* dq) {
 bool is_full(deque* dq) {
         if (!dq) return false;
         
-        return ((rear + 1) % capacity == front);
+        return ((dq->rear + 1) % dq->capacity == dq->front);
 }
 
 void push_front(deque* dq, uint8_t data) {
         if (!dq || is_full(dq)) return;
         
-        dq->front = (front - 1 + capacity) % capacity; 
+        dq->front = (dq->front - 1 + dq->capacity) % dq->capacity; 
         dq->buffer[dq->front] = data;
         dq->size++;
 }
@@ -43,7 +43,7 @@ void push_back(deque* dq, uint8_t data) {
         if (!dq || is_full(dq)) return;
         
         dq->buffer[dq->rear] = data;
-        dq->rear = (rear + 1) % capacity;
+        dq->rear = (dq->rear + 1) % dq->capacity;
         dq->size++;
 }
 
@@ -73,8 +73,10 @@ void print_deque(deque* dq) {
         }
 
         printf("[ ");
-        for (int i = dq->front; i < dq->size; i = (i+1) % capacity) 
+        for (int i = dq->front, count = 0; count < dq->size; i = (i+1) % dq->capacity) {
                 printf("%u ", dq->buffer[i]);
+                count++;
+        }
 
         printf("]\n");
 }
