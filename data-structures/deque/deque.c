@@ -74,7 +74,7 @@ void print_deque(deque* dq) {
 
         printf("[ ");
         for (int i = dq->front; i < dq->size; i = (i+1) % capacity) 
-                printf("%d ", dq->buffer[i]);
+                printf("%u ", dq->buffer[i]);
 
         printf("]\n");
 }
