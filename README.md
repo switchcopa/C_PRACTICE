@@ -19,6 +19,7 @@ From simple exercises to complex projects, everything here represents my growth 
 C_PRACTICE/
 ├── Examples/
 ├── projects/
+├── data-structures/
 ├── Exercises/
 ├── README.md
 ├── .gitignore
