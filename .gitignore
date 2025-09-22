@@ -1,2 +1,8 @@
 *.*.un~
 *~
+test
+/build
+build/*
+*.exe
+/.vscode
+.vscode/*
