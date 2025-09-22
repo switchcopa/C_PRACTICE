@@ -1,6 +1,5 @@
 #include <stdio.h> 
 #include <string.h>
-#include <stdlib.h>
 
 void itob(int n, char s[]);
 void reverse(char s[]);
@@ -10,27 +9,30 @@ int main(void) {
         char s[20];
 
         itob(n, s);
-        printf("test hexadecimal: %x\n", n);
+        printf("test hexadecimal: %X\n", n);
         printf("string: %s\n", s);
 
         return 0;
 }
 
 void itob(int n, char s[]) {
-        if (s[0] == '\0') return;
         int i, remainder, sign;
         unsigned int num;
 
-        if ((sign = num) < 0) 
-                num = (unsigned) -n;
+        if ((sign = n) < 0) {
+                num = (unsigned int) -n;
+        } else {
+                num = (unsigned int) n;
+        }
 
+        i = 0;
         do {
-                remainder = num / 16;
+                remainder = num % 16;
 
                 if (remainder < 10) 
-                        s[i++] = (char) remainder;
+                        s[i++] = (char) remainder + '0';
                 else 
-                        s[i++] = (char) 'F' - remainder + 5;
+                        s[i++] = (char) remainder + 'A' - 10;
 
         } while ((num /= 16) > 0);
 
