@@ -28,7 +28,7 @@ int get_line(char line[], unsigned int max) {
         while (len < max - 1 && (c = getchar()) != EOF) {
                 line[len++] = c;
                 if (c == '\n') 
-                        break;
+                	break;
         }
 
 	line[len] = '\0';
