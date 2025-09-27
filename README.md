@@ -20,6 +20,7 @@ C_PRACTICE/
 ├── Examples/
 ├── projects/
 ├── data-structures/
+├── algorithms/
 ├── Exercises/
 ├── README.md
 ├── .gitignore
