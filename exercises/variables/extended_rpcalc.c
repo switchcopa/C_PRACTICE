@@ -8,7 +8,7 @@
 double pop(void);
 void push(double);
 
-char *operation = "-3.14 4.17 + 2 * 7";
+char *operation = "5 6 2 + * 12 4 / -";
 int op_ptr;
 double stack[STACK_SIZE]; 
 int sp = -1;
@@ -48,7 +48,7 @@ int main(void) {
                 else if (c == ' ') 
                         continue;
 
-                else printf("Unknown token %c\n", c);
+                else fprintf(stderr, "Unknown token %c\n", c);
         }
         
         printf("result: %.8f\n", pop());
