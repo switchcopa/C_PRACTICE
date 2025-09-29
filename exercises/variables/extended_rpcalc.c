@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 
 #define BUF_SIZE 2048
 #define STACK_SIZE 1028
 
 double pop(void);
 void push(double);
+double peek(void);
+void swaptop(void);
 
 char *operation = "5 6 2 + * 12 4 / -";
 int op_ptr;
@@ -72,4 +75,22 @@ void push(double d) {
                 stack[++sp] = d;
         else 
                 perror("error: push from full stack\n");
+}
+
+double peek(void) {
+        if (sp >= 0)
+                return stack[sp];
+        else {
+                perror("error: peek empty stack\n");
+                return 0.0;
+        }
+}
+
+void swaptop(void) {
+        if (sp >= 1) { 
+                double temp = stack[sp];
+                stack[sp] = stack[sp - 1];
+                stack[sp - 1] = temp;
+        } else 
+                perror("error: cannot swap two top elements\n");
 }
