@@ -44,9 +44,6 @@ int main(void) {
 
                 else if (c == '*') 
                         push(pop() * pop());
-                
-                else if (c == '%') 
-                        push(pop() % pop());
 
                 else if (c == ' ') 
                         continue;
