@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "calc.h"
 
 #define STACK_SIZE 100
@@ -11,7 +12,7 @@ double pop(void) {
                 return stack[sp--];
         else {
                 fprintf(stderr, "error: pop from empty stack\n");
-                return 0.0;
+                exit(EXIT_FAILURE);        
         }
 }
 
