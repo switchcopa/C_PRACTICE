@@ -6,3 +6,4 @@ build/*
 *.exe
 /.vscode
 .vscode/*
+*.out
