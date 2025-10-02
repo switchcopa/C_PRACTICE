@@ -8,7 +8,7 @@
 char line[MAX_LINE];
 int lim;
 
-int getline(char destination[]);
+int get_line(char destination[]);
 bool is_uppercase(char c);
 bool is_lowercase(char c);
 char upper(char c);
@@ -18,7 +18,7 @@ int main(void) {
     int c; 
     int len; 
 
-    while ((len = getline(line)) > 0) {
+    while ((len = get_line(line)) > 0) {
         char* buffer = scream(line);
 
         printf("%s\n", buffer);
@@ -28,7 +28,7 @@ int main(void) {
     return 0;
 }
 
-int getline(char destination[]) {
+int get_line(char destination[]) {
     int c, i; 
     lim = MAX_LINE - 2;
     
