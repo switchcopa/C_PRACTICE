@@ -13,8 +13,6 @@ void str_cat_ptr(const char *s, char *t) {
         while (*t != '\0')
                 t++;
 
-        while ((*t = *s) != '\0') {
-                t++;
-                s++;
-        }
+        while ((*t++ = *s++) != '\0')
+                ;
 }
