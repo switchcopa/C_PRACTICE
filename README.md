@@ -23,8 +23,7 @@ C_PRACTICE/
 ├── algorithms/
 ├── Exercises/
 ├── README.md
-├── .gitignore
-└── .clangd
+└── .gitignore
 ```
 
 ---
