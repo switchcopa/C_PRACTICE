@@ -1,6 +1,7 @@
 *.*.un~
 *~
 test
+debug
 /build
 build/*
 *.exe
