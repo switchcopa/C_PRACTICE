@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#define BLOCK_SIZE 1024 * 1024
+#define HEAP_SIZE 1024 * 1024
 
 struct mem_block {
         struct mem_block *next_block;
