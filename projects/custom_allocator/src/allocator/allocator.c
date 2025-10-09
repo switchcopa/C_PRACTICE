@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "allocator.h"
 
 static unsigned char allocbuf[HEAP_SIZE]; // This is the "heap",
@@ -25,11 +24,33 @@ void init_allocator(void) {
 
 // If the requested size is enough, we create another block_size
 // and return only the requested
-static void split_block(struct mem_block *block, size_t size);
+static void split_block(struct mem_block *block, size_t size) {
+        if (block->block_size >= size + sizeof(struct mem_block) + 1) {
+                struct mem_block *new_block = (struct mem_block *)((unsigned char *)block + size + sizeof(struct mem_block) + size);
+                
+                new_block->block_size = block->block_size - size - sizeof(struct mem_block);
+                new_block->free = 1;
+                new_block->next_block = block->next_block;
+
+                block->block_size = size;
+                block->next_block = new_block;
+        }
+}
 
 // Call this before freeing to reduce block fragmentation
 // This memory pools large allocations
-static void coalesce_block(void);
+static void coalesce_block(void) {
+        struct mem_block *curr = head_block; 
+
+        while (curr && curr->next_block) {
+                if (curr->free && curr->next_block->free) {
+                        curr->block_size += sizeof(struct mem_block) + curr->next_block->block_size;
+                        curr->next_block = curr->next_block->next_block;
+                } else {
+                        curr = curr->next_block;
+                }
+        }
+}
 
 void *zalloc(size_t size);
 
