@@ -15,15 +15,21 @@ void q_sort(char *v[], int left, int right);
 
 int main(void) {
         int nlines;
+        int ret;
 
         if ((nlines = readlines(lineptr, MAXLINES)) >= 0) {
                 q_sort(lineptr, 0, nlines-1);
                 writelines(lineptr, nlines);
-                return 0;
+                ret = 0;
         } else {
                 printf("error: failed to sort input\n");
-                return 1;
+                ret = 1;
         }
+
+        while (nlines-- > 0)
+                free(lineptr[nlines]);
+        
+        return ret;
 }
 
 int readlines(char *lineptr[], int maxlines) {
