@@ -6,9 +6,10 @@ static char daytab[2][13] = {
 /* day_of_year: set day of year from month & day */
 int day_of_year(int year, int month, int day)
 {
+        int i, leap;
+        leap = year%4 == 0 && year%100 != 0 || year%400 == 0;
+
         if ((1 <= month && month <= 12) && (1 <= day && day <= daytab[leap][month])) {
-                int i, leap;
-                leap = year%4 == 0 && year%100 != 0 || year%400 == 0;
 
                 for (i = 1; i < month; i++) 
                         day += daytab[leap][i];
