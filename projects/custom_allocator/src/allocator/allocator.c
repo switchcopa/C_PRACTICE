@@ -52,6 +52,27 @@ static void coalesce_block(void) {
         }
 }
 
-void *zalloc(size_t size);
+void *zalloc(size_t size) {
+        if (!head_block)
+                init_allocator();
 
-void zfree(void *ptr);
+        struct mem_block *curr = head_block;
+        while (curr) {
+                if (curr->free && curr->block_size >= size) {
+                        split_block(curr, size);
+                        curr->free = 0;
+                        return (void*)((unsigned char *)curr + sizeof(struct mem_block));
+                }
+        }
+
+        return NULL;
+}
+
+void zfree(void *ptr) {
+        if (!ptr)
+                return;
+
+        struct mem_block *block = (void*)((unsigned char *)ptr - sizeof(struct mem_block));
+        block->free = 1;
+        coalesce_block();
+}
