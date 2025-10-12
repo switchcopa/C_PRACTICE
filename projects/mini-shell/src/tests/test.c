@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include "../mini-shell/mini-shell.h"
-
 int main(int argc, char **argv) {
         if (argc == 1) {
                 printf("Usage: ./test help\n");
@@ -27,6 +26,12 @@ int main(int argc, char **argv) {
         else if (strcmp(argv[1], "write") == 0 && argc == 4)
                 writef(argv[2], argv[3]);
 
+        else if (strcmp(argv[1], "append") == 0 && argc == 4)
+                appendf(argv[2], argv[3]);
+        
+        else if (strcmp(argv[1], "help") == 0)
+                help();
+        
         else
                 printf("Unknown arguments or commands\n");
 

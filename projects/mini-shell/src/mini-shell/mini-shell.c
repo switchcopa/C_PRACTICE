@@ -113,3 +113,20 @@ int writef(const char *filename, const char *srcbuf) {
         printf("successfully written buffer '%s'\n", filename);
         return 0;
 }
+
+void appendf(const char *filename, const char *srcbuf) {
+        FILE *fp = fopen(filename, "a");
+        if (!fp) {
+                printf("Failed to open file '%s'\n", filename);
+                return;
+        }
+
+        fprintf(fp, "%s", srcbuf);
+        fclose(fp);
+
+        printf("successfully appended '%s' to file '%s'\n", srcbuf, filename);
+}
+
+void help(void) {
+        printf("./mini-shell\n\t\tcopy <dest> <src>\n\t\tdelete <filename>\n\t\tread <filename>\n\t\twrite <filename> \"some data\"\n\t\tappend <filename> \"some data\"\n"); 
+}
