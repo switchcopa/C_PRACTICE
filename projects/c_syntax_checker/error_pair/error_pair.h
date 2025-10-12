@@ -1,6 +1,8 @@
 #ifndef ERROR_PAIR_H
 #define ERROR_PAIR_H
 
+#include <stdbool.h>
+
 typedef struct {
     int line;
     char symbol;
