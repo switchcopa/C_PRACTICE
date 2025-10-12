@@ -3,6 +3,7 @@
 test
 debug
 /build
+build/
 build/*
 *.exe
 /.vscode
