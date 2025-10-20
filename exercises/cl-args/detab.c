@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* entab: converts a list of '\t' arguments as 
+/* detab: converts a list of '\t' arguments as 
  * tab stops.
  */
 
@@ -15,7 +15,7 @@ main(int argc, char **argv)
 {
 	if (argc == 1 || argc >= 4) 
 	{
-		printf("Usage: ./entab \"Hello\\tWorld\" <num-of-tabs (optional)>\n");
+		printf("Usage: ./detab \"Hello\\tWorld\" <num-of-tabs (optional)>\n");
 		return EXIT_FAILURE;
 	}
 

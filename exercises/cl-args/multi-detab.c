@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* multi-entab: converts a list of '\t' by the user arguments as 
+/* multi-dentab: converts a list of '\t' by the user arguments as 
  * tab stops.
  */
 
@@ -15,7 +15,7 @@ main(int argc, char **argv)
 {
 	if (argc == 1) 
 	{
-		printf("Usage: ./mentab \"Hello\\tWorld\" <tab-list (optional)>\n");
+		printf("Usage: ./mdentab \"Hello\\tWorld\" <tab-list (optional)>\n");
 		return EXIT_FAILURE;
 	}
 
