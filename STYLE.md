@@ -10,9 +10,7 @@ Following these rules ensures consistency, readability, and alignment with K&R s
 - All functions must be defined like this:
 
 ```c
-type
-function_name(arguments)
-{
+type function_name(arguments) {
     ...
 }
 ```
@@ -20,9 +18,7 @@ function_name(arguments)
 . Example:
 
 ```c
-int
-add_numbers(int a, int b)
-{
+int add_numbers(int a, int b) {
     return a + b;
 }
 ```
@@ -50,18 +46,15 @@ add_numbers(int a, int b)
 All `if`, `for` and `while` statements should follow this K&R multi-line style:
 
 ```c
-while (condition) 
-{
+while (condition) {
     ...
 }
 
-for (init; condition; increment)
-{
+for (init; condition; increment) {
     ...
 }
 
-if (condition)
-{
+if (condition) {
     ...
 }
 ```
@@ -114,9 +107,7 @@ const int max_size = 100;
 - Use inline functions (if macros are unsafe): for small functions that need type safety, inline can replace a macro:
 
 ```c
-inline int
-max(int a, int b)
-{
+inline int max(int a, int b) {
     return a > b ? a : b;
 }
 ```

@@ -21,6 +21,7 @@ C_PRACTICE/
 ├── projects/
 ├── data-structures/
 ├── algorithms/
+├── small-programs/
 ├── Exercises/
 ├── README.md
 └── .gitignore
