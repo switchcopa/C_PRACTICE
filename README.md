@@ -24,6 +24,10 @@ C_PRACTICE/
 ├── small-programs/
 ├── Exercises/
 ├── README.md
+├── LICENSE
+├── todays_goals
+├── Makefile
+├── STYLE.md
 └── .gitignore
 ```
 
