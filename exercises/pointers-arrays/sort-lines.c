@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define MAXLINES 5000
@@ -24,25 +25,27 @@ int main(void) {
                 printf("error: failed to sort input\n");
                 ret = 1;
         }
+
+        while (nlines-- > 0)
+                free(lineptr[nlines]);
         
         return ret;
 }
 
 int readlines(char *lineptr[], int maxlines) {
-        static char linestore[MAXLINES * MAXLEN];
-        char *p = linestore;
-        char line[MAXLEN];
-        int len, nlines = 0;
-
-        while ((len = get_line(line, MAXLEN)) > 0) {
-                if (nlines >= maxlines || p + len > linestore + sizeof(linestore))
-                        return -1;
-
-                line[len - 1] = '\0';
-                strcpy(p, line);
-                p += len;
-        }
+        int len, nlines;
+        char *p, line[MAXLEN];
         
+        nlines = 0;
+        while ((len = get_line(line, MAXLEN)) > 0) 
+                if (nlines >= maxlines || (p = malloc(len)) == NULL)
+                        return -1;
+                else {
+                        line[len - 1] = '\0';
+                        strcpy(p, line);
+                        lineptr[nlines++] = p;
+                } 
+
         return nlines;
 }
 
