@@ -1,12 +1,15 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_render.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <stdbool.h>
+#include <time.h>
 
 #define WINDOW_WIDTH 900 
 #define WINDOW_HEIGHT 600
+#define MAX_CIRCLES 100
 #define TIME_DIFF(START, END) ((double) (END - START))
 #define TARGET_FPS 60
 #define FRAME_TIME (1000 / TARGET_FPS)
@@ -22,11 +25,13 @@ void circle_update_position(circle *c);
 void circle_apply_gravity(circle *c);
 void circle_detect_collisions(circle *c);
 void draw_circle(SDL_Renderer *renderer, circle *c);
+bool cursor_in_circle(circle *c);
 
 const float eps = 1.5f;
 const float e_bounce = -.5f;
 const float g  = 1200.0f;
 const float dt = 0.016f;
+const float throw_scale = 30.0f;
 
 // keep all this here so I memorize the API
 int           SDL_Init(Uint32 flags);
@@ -54,31 +59,74 @@ int main(void) {
         SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
         SDL_Event event;
         static bool running = true;
-       
+        bool is_holding_mouse = false;
+        
         circle c;
+        circle *circle_arr = malloc(sizeof(circle) * MAX_CIRCLES);
+        int c_ptr = -1;
+        circle_arr[++c_ptr] = c;
+
         init_circle(&c, 50, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 
         while (running) {
 		Uint32 start_time = SDL_GetTicks();
-                while (SDL_PollEvent(&event))
-                        if (event.type == SDL_QUIT)
-                                running = false;
-                
-                circle_update_position(&c);
-		circle_apply_gravity(&c);	
+                while (SDL_PollEvent(&event)) {
+                        switch (event.type) {
+                                case SDL_QUIT:
+                                        running = false;
+                                        break;
+                                case SDL_MOUSEBUTTONDOWN:
+                                        if (event.button.button == SDL_BUTTON_LEFT && cursor_in_circle(&c)) {
+                                                is_holding_mouse = true;
+                                        }
+                                        break;
+                                case SDL_KEYDOWN:
+                                        if (event.key.keysym.sym == SDLK_e) {
+                                                circle new_circle;
+                                                circle_arr[++c_ptr] = new_circle;
+                                        }
+                                        break;
+                                case SDL_MOUSEBUTTONUP:
+                                        if (event.button.button == SDL_BUTTON_LEFT && is_holding_mouse) {
+                                                is_holding_mouse = false;
+                                                int dx, dy;
+                                                SDL_GetRelativeMouseState(&dx, &dy);
+
+                                                c.vx = dx * throw_scale;
+                                                c.vy = dy * throw_scale;
+                                        }
+                                        break;       
+                        }
+                }
+
+                int mx, my;
+                SDL_GetMouseState(&mx, &my);
+                printf("(%d, %d)\n", mx, my);
+                if (!is_holding_mouse) {
+                        circle tc;
+                        for (int i = 0; i <= c_ptr; i++) {
+                                circle_update_position(&tc);
+                                circle_apply_gravity(&tc);
+                        }
+                } else {
+                        c.cx = mx;
+                        c.cy = my;
+                        c.vx = c.vy = 0;
+                }
+
 		circle_detect_collisions(&c);
 
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
                 SDL_RenderClear(renderer);
                 draw_circle(renderer, &c);  
-
                 SDL_RenderPresent(renderer);
-		
+                
 		Uint32 frame_time = SDL_GetTicks() - start_time;
 		if (frame_time < FRAME_TIME)
 			SDL_Delay(FRAME_TIME - frame_time);
         }
 
+        free(circle_arr);
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -155,4 +203,10 @@ void draw_circle(SDL_Renderer *renderer, circle *c) {
                         decision += 2 * (y - x) + 1;
                 }
         }
+}
+
+bool cursor_in_circle(circle *c) {
+        int mx, my;
+        SDL_GetMouseState(&mx, &my);
+        return (pow(mx - c->cx, 2) + pow(my - c->cy, 2) < pow(c->radius, 2));
 }
