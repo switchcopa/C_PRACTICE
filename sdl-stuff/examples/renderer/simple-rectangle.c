@@ -8,6 +8,9 @@
 #define TARGET_FPS 60
 #define FRAME_TIME (1000 / TARGET_FPS)
 
+const float g  = 500.0f;
+const float dt = 0.016f;
+
 // keep all this here so I memorize the API
 int           SDL_Init(Uint32 flags);
 SDL_Window   *SDL_CreateWindow(const char *title, int x, int y, int w, int h, Uint32 flags);
@@ -34,22 +37,26 @@ int main(void) {
         SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
         SDL_Event event;
         static bool running = true;
-        SDL_Rect rect = {
-                350, 250,
-                100, 100
-        };
-        
+	float x = 300, y = 200;
+        float size = 50;
+	float v = 0;
+
         while (running) {
 		Uint32 start_time = SDL_GetTicks();
                 while (SDL_PollEvent(&event))
                         if (event.type == SDL_QUIT)
                                 running = false;
 
+	        v += g * dt;
+                y += v * dt;
+
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
                 SDL_RenderClear(renderer);
         
+                SDL_Rect square = { (int)x, (int)y, (int)size, (int)size };
                 SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                SDL_RenderFillRect(renderer, &rect);
+		SDL_RenderFillRect(renderer, &square);
+
                 SDL_RenderPresent(renderer);
 		
 		Uint32 frame_time = SDL_GetTicks() - start_time;
