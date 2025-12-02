@@ -7,7 +7,7 @@
 #define MAX_ITER 1000000
 
 double a(unsigned int n) {
-	return exp(-n);
+	return (double)1/log(n);
 }
 
 bool is_convergent(double (*seq)(unsigned int n), double *limit);
