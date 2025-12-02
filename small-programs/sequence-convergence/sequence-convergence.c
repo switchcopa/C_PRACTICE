@@ -3,11 +3,11 @@
 #include <math.h>
 #include <limits.h>
 
-#define EPSILON 1e-9
-#define MAX_ITER 1000000
+#define EPSILON 1e-12
+#define MAX_ITER 10000000
 
-double a(unsigned int n) {
-	return (double)1/log(n);
+double a(int n) {
+	return exp(-n);
 }
 
 bool is_convergent(double (*seq)(unsigned int n), double *limit);
@@ -26,19 +26,35 @@ int main(void) {
 }
 
 bool is_convergent(double (*seq)(unsigned int n), double *limit) {
-        double diff;
+	unsigned int i;
+        double diff, limit_found;
         unsigned int window = 10;
+	bool limit_exists = false;
+	int stability = 0, required_stability = 10;	
          
-        for (unsigned int i = 1; i + window < MAX_ITER; i++) {
-                diff = fabs(seq(i+window)-seq(i)); 
-
+        for (i = 1; i + window < MAX_ITER; i++) {
+                diff = fabs(seq(i+window)-seq(i));
+		
                 if (diff < EPSILON) {
-			*limit = seq(MAX_ITER-window);
-			return true;
+                        limit_found = seq(i);
+			limit_exists = true;
+			break;
 		}
 
                 if (!isfinite(seq(i))) return false;
         }
 
-        return false;
+	if (limit_exists) {
+		for (i = 1; i < MAX_ITER; i++)
+			if (fabs(seq(i) - limit_found) < EPSILON) {
+				stability++;
+
+				if (stability >= required_stability) {
+                                        *limit = limit_found;
+					return true;
+                                }
+			} else 
+				stability = 0;
+	} else 
+		return false;
 }
