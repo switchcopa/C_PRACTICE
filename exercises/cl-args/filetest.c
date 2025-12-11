@@ -1,24 +1,23 @@
 #include <stdio.h>
 
-int main() {
-    // This is a line comment
+int main(void) {
+	/* there should be no errors */
+	int a = 0;
+	char b = '\'';
+	char c = '\"';
+	char arr[100]; // test test
+/* this is a nested
+		multi line comment */ 
 
-    char c = '\'';   // single quote inside char
-    char d = '"';   // double quote inside char
+	printf("Hello world!\n");
 
-    /*
-       This is a block comment
-      nested-looking comment */
-
-    if (1) {   // correct brackets
-        int arr[3] = {1, 2, 3};
-    }
-
-    if (0) {   // missing closing bracket - should trigger error
-        printf(Oops!);
-    
-    printf("Escaped \" quotes \n still works.n");
-
-    return 0;
+	if (0) {
+		//nothing 
 	}
+	
+	for (int i = 0; i < 100; i++) {
+		arr[i] = 'x';	
+	};
+	printf("Escaped \\\" quotes \\n still works.\n");
+	return 0;
 }

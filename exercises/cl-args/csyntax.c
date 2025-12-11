@@ -19,16 +19,21 @@ typedef enum {
 	Q_NONE
 } quote_state;
 
+typedef struct {
+	int line;
+	char bracket;
+} stack_entry;
+
 bool endswith(const char *restrict buf, const char *restrict suffix);
 char *load_file(const char *restrict filename, size_t *out_size);
-void push(char c);
-char pop(void);
+void push(stack_entry entry);
+stack_entry pop(void);
 bool is_empty(void);
 bool is_opening_bracket(char c);
 bool is_closing_bracket(char c);
 bool is_matching_brackets(char c, char t);
 
-char synt_st[STACK_SIZE];
+stack_entry synt_st[STACK_SIZE];
 int stp = -1;
 
 int main(int argc, char **argv) {
@@ -50,14 +55,16 @@ int main(int argc, char **argv) {
 	comm_state st = NONE;
 	quote_state qst = Q_NONE;
 	size_t file_p = 0;
-	int backslashes = 0;
+	int backslashes = 0, nlines = 1;
 	
 	for (; file_p < f_size; file_p++) {
+		if (file_buf[file_p] == '\n')
+			nlines++;
+
 		if ((st == IN_COMMENTS && file_p + 1 < f_size && file_buf[file_p] == '\n') ||
 			(st == IN_MULTI_COMMENT && file_p + 1 < f_size && file_buf[file_p] == '*' && file_buf[file_p + 1] == '/')) {
 			file_p++;
 			st = NONE;
-			continue;
 		}
 		
 		if ((qst == IN_QUOTES && file_buf[file_p] == '\'')  ||
@@ -97,40 +104,44 @@ int main(int argc, char **argv) {
 			continue;
 		}
 
-		if (is_opening_bracket(file_buf[file_p]))
-			push(file_buf[file_p]);
+		if (is_opening_bracket(file_buf[file_p])) {
+			stack_entry entry;
+			entry.line = nlines, entry.bracket = file_buf[file_p];
+			push(entry);
+		}
 		else if (is_closing_bracket(file_buf[file_p])) {
 			if (is_empty()) {
-				fprintf(stderr, "unexpected closing bracket '%c'\n", file_buf[file_p]);
+				fprintf(stderr, "unexpected closing bracket '%c' at line %d\n", file_buf[file_p], nlines);
 				continue;
 			}
 
-			char temp = pop();
-			if (is_matching_brackets(temp, file_buf[file_p]))
+			stack_entry temp = pop();
+			if (is_matching_brackets(temp.bracket, file_buf[file_p]))
 				continue;
 			else {
-				fprintf(stderr, "syntax error: expected to close bracket '%c'\n", temp);
+				fprintf(stderr, "syntax error: expected to close bracket '%c' at line %d\n", temp.bracket, temp.line);
 				continue;
 			}
 		}
 	}
 
-	if (!is_empty())
-		fprintf(stderr, "syntax error: expected to close bracket '%c'\n", pop());
-	
+	if (!is_empty()) {
+		stack_entry temp = pop();
+		fprintf(stderr, "syntax error: expected to close bracket '%c' at line %d\n", temp.bracket, temp.line);
+	}	
 	free(file_buf);	
 	return EXIT_SUCCESS;
 }
 
-void push(char c) {
+void push(stack_entry entry) {
 	if (stp >= STACK_SIZE - 1) {
 		fprintf(stderr, "pushed to full stack\n");
 		exit(EXIT_FAILURE);
 	} else
-		synt_st[++stp] = c;
+		synt_st[++stp] = entry;
 }
 
-char pop(void) {
+stack_entry pop(void) {
 	if (stp < 0) {
 		fprintf(stderr, "pop from empty stack\n");
 		exit(EXIT_FAILURE);
