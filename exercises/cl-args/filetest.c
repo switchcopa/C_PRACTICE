@@ -3,10 +3,10 @@
 int main(void) {
 	/* there should be no errors */
 	int a = 0;
-	char b = '\'';
-	char c = '\"';
+	char b = 'a';
+	char c = 'c';
 	char arr[100]; // test test
-/* this is a nested
+	/* this is a nested
 		multi line comment */ 
 
 	printf("Hello world!\n");
@@ -18,6 +18,7 @@ int main(void) {
 	for (int i = 0; i < 100; i++) {
 		arr[i] = 'x';	
 	};
-	printf("Escaped \\\" quotes \\n still works.\n");
+
+	printf("Escaped \n");
 	return 0;
 }

@@ -68,21 +68,22 @@ int main(int argc, char **argv) {
 		}
 		
 		if ((qst == IN_QUOTES && file_buf[file_p] == '\'')  ||
-			(qst == IN_DOUBLE_QUOTES && file_buf[file_p] == '\"')) {
-			if (backslashes == 0 || backslashes % 2 != 0) {
-                                backslashes = 0;
-				qst = Q_NONE;
-				continue;
-			}
-
-			else
-				continue;
+				(qst == IN_DOUBLE_QUOTES && file_buf[file_p] == '\"')) {
+				if (backslashes == 0 || backslashes % 2 != 0) {
+						backslashes = 0;
+						qst = Q_NONE;
+						continue;
+				}
+				else {
+						backslashes = 0;
+						continue;
+				}
 		} else if ((qst == IN_QUOTES && file_buf[file_p] == '\\') ||
-			(qst == IN_DOUBLE_QUOTES && file_buf[file_p] == '\\')) {
+				(qst == IN_DOUBLE_QUOTES && file_buf[file_p] == '\\')) {
 				backslashes++;
-			continue;
+				continue;
 		}
-	
+
 		if (st == IN_COMMENTS || st == IN_MULTI_COMMENT || qst == IN_QUOTES || qst == IN_DOUBLE_QUOTES)
 			continue;
 
@@ -109,6 +110,7 @@ int main(int argc, char **argv) {
 			entry.line = nlines, entry.bracket = file_buf[file_p];
 			push(entry);
 		}
+
 		else if (is_closing_bracket(file_buf[file_p])) {
 			if (is_empty()) {
 				fprintf(stderr, "unexpected closing bracket '%c' at line %d\n", file_buf[file_p], nlines);
@@ -116,19 +118,18 @@ int main(int argc, char **argv) {
 			}
 
 			stack_entry temp = pop();
-			if (is_matching_brackets(temp.bracket, file_buf[file_p]))
-				continue;
-			else {
+			if (!is_matching_brackets(temp.bracket, file_buf[file_p])) {
 				fprintf(stderr, "syntax error: expected to close bracket '%c' at line %d\n", temp.bracket, temp.line);
 				continue;
 			}
 		}
 	}
 
-	if (!is_empty()) {
+	while (!is_empty()) {
 		stack_entry temp = pop();
-		fprintf(stderr, "syntax error: expected to close bracket '%c' at line %d\n", temp.bracket, temp.line);
-	}	
+		fprintf(stderr, "syntax error: expected to close bracket '%c' at line %d\n", temp.bracket, temp.line); 
+	}
+
 	free(file_buf);	
 	return EXIT_SUCCESS;
 }
