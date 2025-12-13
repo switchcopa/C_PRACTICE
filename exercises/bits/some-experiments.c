@@ -19,6 +19,10 @@ int kr_countsetbits(uint32_t x);
 
 uint32_t reverse_bits(uint32_t x);
 
+/* Write a function that takes a 32-bit unsigned integer and returns 1 if there's exactly one set bit, 0 otherwise */
+
+int one_bit_set(uint32_t x);
+
 int main(void) {
         int x = 0b10101111, y = 0b00001100;
         setbits(&x, 4, 3, y);
@@ -35,6 +39,11 @@ int main(void) {
         p = reverse_bits(p);
         printf("%u, %u\n", p, ~0U);
 	
+	uint32_t ints[5] = {0b110, 0b0010, 0b1001, 0b0001, 2};
+	for (int i = 0; i < 5; i++)
+		if (one_bit_set(ints[i]))
+			printf("%d has exactly one bit set\n", ints[i]);
+
 	return 0;
 }
 
@@ -75,4 +84,8 @@ uint32_t reverse_bits(uint32_t x) {
 	}
 
 	return result;
+}
+
+int one_bit_set(uint32_t x) {
+	return (x & (x-1)) == 0;
 }
