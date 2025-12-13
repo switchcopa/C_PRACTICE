@@ -20,12 +20,18 @@ typedef struct {
         int cx, cy;
 } circle;
 
+typedef struct {
+	
+} Grid;
+
 void init_circle(circle *c, float r, int x, int y);
 void circle_update_position(circle *c);
 void circle_apply_gravity(circle *c);
 void circle_detect_collisions(circle *c);
 void draw_circle(SDL_Renderer *renderer, circle *c);
 bool cursor_in_circle(circle *c);
+void render_balls(SDL_Renderer* renderer, circle* arr, int max);
+void add_ball(circle *arr, circle *c);
 
 const float eps = 1.5f;
 const float e_bounce = -.5f;
@@ -63,8 +69,8 @@ int main(void) {
         
         circle c;
         circle *circle_arr = malloc(sizeof(circle) * MAX_CIRCLES);
-        int c_ptr = -1;
-        circle_arr[++c_ptr] = c;
+	int arr_idx = -1;
+	add_ball(circle_arr, &c, &arr_idx);
 
         init_circle(&c, 50, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
 
@@ -79,11 +85,9 @@ int main(void) {
                                         if (event.button.button == SDL_BUTTON_LEFT && cursor_in_circle(&c)) {
                                                 is_holding_mouse = true;
                                         }
-                                        break;
                                 case SDL_KEYDOWN:
                                         if (event.key.keysym.sym == SDLK_e) {
                                                 circle new_circle;
-                                                circle_arr[++c_ptr] = new_circle;
                                         }
                                         break;
                                 case SDL_MOUSEBUTTONUP:
@@ -98,27 +102,25 @@ int main(void) {
                                         break;       
                         }
                 }
-
+	
+		// remove all this too or change it to be for all balls
                 int mx, my;
                 SDL_GetMouseState(&mx, &my);
-                printf("(%d, %d)\n", mx, my);
                 if (!is_holding_mouse) {
-                        circle tc;
-                        for (int i = 0; i <= c_ptr; i++) {
-                                circle_update_position(&tc);
-                                circle_apply_gravity(&tc);
-                        }
+                        circle_update_position(&c);
+                        circle_apply_gravity(&c);
                 } else {
                         c.cx = mx;
                         c.cy = my;
                         c.vx = c.vy = 0;
                 }
+		// 
 
-		circle_detect_collisions(&c);
+		circle_detect_collisions(&c); //update this for all balls
 
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
                 SDL_RenderClear(renderer);
-                draw_circle(renderer, &c);  
+                draw_circle(renderer, &c); // change this
                 SDL_RenderPresent(renderer);
                 
 		Uint32 frame_time = SDL_GetTicks() - start_time;
@@ -154,8 +156,6 @@ void circle_detect_collisions(circle *c) {
 	if (c->cy + c->radius > WINDOW_HEIGHT) {
 		c->cy = WINDOW_HEIGHT - c->radius;
 		c->vy *= e_bounce;
-                if (fabs(c->vy) < eps)
-                        c->vy = 0;
 	}
 
 	if (c->cy - c->radius < 0) {
@@ -179,6 +179,9 @@ void circle_detect_collisions(circle *c) {
 	        if (fabs(c->vx) < eps) 
                         c->vx = 0;
 	}
+
+        if (fabs(c->vy) < eps)
+                c->vy = 0;
 }
 
 void draw_circle(SDL_Renderer *renderer, circle *c) {
@@ -209,4 +212,13 @@ bool cursor_in_circle(circle *c) {
         int mx, my;
         SDL_GetMouseState(&mx, &my);
         return (pow(mx - c->cx, 2) + pow(my - c->cy, 2) < pow(c->radius, 2));
+}
+
+void render_balls(SDL_Renderer* renderer, circle* arr, int max) {
+	for (int i = max; i >= 0 ; i--)
+		draw_circle(renderer, arr[i]);	
+}
+
+void add_ball(circle *arr, circle *c, int *arr_idx) {
+	arr[++*arr_idx] = *c;
 }
