@@ -15,7 +15,7 @@ int main(void) {
 }
 
 void squeeze(char s[], char t[]) {
-    char seen[256] = {false};
+    bool seen[256] = {false};
     int i, c, k;
     
     for (i = 0; (c = (unsigned char) t[i]) != '\0'; i++) 
