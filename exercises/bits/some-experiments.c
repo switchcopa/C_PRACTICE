@@ -53,6 +53,10 @@ uint32_t *pb = (uint32_t *) buf;
 	Answer is in line 80.
 */
 
+/* Write another swap_endian function that swaps endianness of a uint32_t using uint8_t bytes and OR bit manipulation */
+
+void better_swap_endian(uint8_t *bfp);
+
 int main(void) {
         int x = 0b10101111, y = 0b00001100;
         setbits(&x, 4, 3, y);
@@ -78,8 +82,15 @@ int main(void) {
 	printf("pb[0] = 0x%X\n", pb[0]);
 
 	uint8_t msg[4] = {0x00, 0x11, 0x67, 0x77};
-	uint32_t *ptr = (uint32_t *) msg;
-	printf("packed msg: %s\n", (unsigned char *) ptr);
+	uint32_t *ptr = (uint32_t *) msg; // now ptr holds 0x77671100, for big-endian -> 0x00116777
+	printf("packed msg: 0x%X\n", *ptr);
+	swap_endian(ptr);
+	printf("swapped for big-endian: 0x%X\n", *ptr);
+	
+	uint8_t bfp[4] = {0x12, 0x34, 0x56, 0x78};
+	uint32_t *endian = (uint32_t *) bfp;
+	better_swap_endian(bfp);
+	printf("swapped for big-endian: 0x%X\n", *endian); // 0x78563412
 
 	return 0;
 }
@@ -137,4 +148,9 @@ void swap(uint8_t *a, uint8_t *b) {
 	*a = *a ^ *b;
 	*b = *a ^ *b;
 	*a = *a ^ *b;
+}
+
+void better_swap_endian(uint8_t *ptr) {
+	(ptr[0] << 24)  | (ptr[1] << 16) |
+		(ptr[2] >> 16) | (ptr[3] >> 24);
 }
