@@ -66,18 +66,12 @@ int get_line(char *line, int max_lines) {
 }
 
 int has(const char *src, const char *pattern) {
-	int src_len = strlen(src);
-	int pat_len = strlen(pattern);
-
-	if (pat_len > src_len)
-		return 0;
-	
-	for (int i = 0; i <= src_len - pat_len; i++) {
+	for (int i = 0; src[i] != '\0'; i++) {
                 int k = 0;
-		for (int j = i; k < pat_len && pattern[k] == src[j]; k++, j++)
+		for (int j = i; pattern[k] != '\0' && pattern[k] == src[j]; k++, j++)
 			;
 
-		if (k == pat_len)
+		if (k > 0 && pattern[k] == '\0' )
 			return 1;
 	}
 
