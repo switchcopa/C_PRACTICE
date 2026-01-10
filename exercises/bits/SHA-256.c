@@ -65,7 +65,7 @@
 
 #define MSG_LENGTH 12
 
-uint8_t msg[MSG_LENGTH] = {'b', 'l', 'a', 'x', 'f', 'r', 'u', 'i', 't', '1', '2', '3'};
+uint8_t msg[MSG_LENGTH] = "my password";
 
 /*
 uint8_t msg[MSG_LENGTH] = {
@@ -174,7 +174,7 @@ int main(void) {
                 H[6] += g;
                 H[7] += h;
         }
-
+  
         uint8_t hash[32];
         for (int i = 0; i < 8; i++) {
                 hash[4*i]     = (H[i] >> 24) & 0xFF;
