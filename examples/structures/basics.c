@@ -9,8 +9,8 @@ struct point {
 };
 
 struct rect {
-    struct pt pt1;
-    struct pt pt2;
+    struct point pt1;
+    struct point pt2;
 };
 
 // the keyword struct introduces a structure declaration, which is a list of declarations enclosed in brackets
@@ -50,7 +50,7 @@ int main(void) {
 // diagonally opposite corners: 
     
 // then:
-    rectangle.pt1 = 55;
+    rectangle.pt1 = (struct point){255, 255};
 // refers to the x coordinate of pt1 member of rectangle.
     return 0;
 }
