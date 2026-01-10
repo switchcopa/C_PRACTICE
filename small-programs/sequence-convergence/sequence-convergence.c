@@ -6,7 +6,7 @@
 #define EPSILON 1e-12
 #define MAX_ITER 10000000
 
-double a(int n) {
+double a(unsigned int n) {
 	return exp(-n);
 }
 
