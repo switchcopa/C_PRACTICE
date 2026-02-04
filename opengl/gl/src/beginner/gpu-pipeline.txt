@@ -1,0 +1,5 @@
+
+The GPU pipeline is a parallelized sequence of steps that transforms 3D scene data from CPU memory
+to a 2D image displayed on the screen.
+
+

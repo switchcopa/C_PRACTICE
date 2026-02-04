@@ -1,0 +1,24 @@
+
+
+In this .txt file I will describe what a shader is.
+Definition: a shader is just a small program that runs on the GPU instead of the CPU.
+In OpenGL, we write it in GLSL language (OpenGL Shader Language), for example:
+
+#version 330 core
+// declare variables
+
+void main()
+{
+    // stuff to put here...
+}
+
+This small program is compiled by the GPU driver at runtime, then the GPU executes
+it for each vertex or pixel.
+
+Modern OpenGL requires a vertex shader and a fragment shader.
+The Vertex Shader:
+receives vertex data, transforms it, and outputs a final 4D position to OpenGL
+
+Then, the fragment shader:
+executes per pixel fragment by determining the color of each pixel drawn, and does other 
+stuff like math, textures, lights, etc...
