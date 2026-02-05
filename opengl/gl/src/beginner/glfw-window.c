@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <sys/types.h>
 #include <glad/glad.h> // “A loader that fetches all OpenGL functions from your driver.”
 #include <GLFW/glfw3.h> // context: "A GPU state machine allocated for your program."
 
@@ -36,7 +37,7 @@ typedef struct {
 
 // glfw/glad functions
 void glfw_init(void);
-void glfw_init_window(GLFWwindow *window, const char *window_title);
+void glfw_init_window(GLFWwindow **window, const char *window_title);
 void glad_load_gl(void);
 
 // helper functions
@@ -48,39 +49,52 @@ unsigned int create_shader_program(const char *vsf, const char *fsf);
 void shader_program_report_error(GLuint obj, GLenum type);
 
 // mesh and vertices functions
-Mesh create_mesh(Vertex *vertices, size_t n, int mes);
-void mesh_draw(const Mesh *mesh);
+Mesh create_mesh(Vertex *vertices, size_t n, int *meshesp, Mesh *meshes);
+void mesh_draw(const Mesh *mesh, GLenum type);
+Mesh *meshes_create(void);
+void meshes_delete(Mesh *meshes, int meshesp);
 
 Vertex triangle[] =
 {
-    { { -0.5f, -0.5f, 0.0f }, {1.0f, 0.0f, 0.0f, 1.0f} },
-    { {  0.5f, -0.5f, 0.0f }, {0.0f, 1.0f, 0.0f, 1.0f} },
-    { {  0.0f,  0.5f, 0.0f }, {0.0f, 0.0f, 1.0f, 1.0f} }
+    { { -0.7f,  0.7f, 0.0f }, {1.0f, 0.0f, 0.0f, 1.0f} },
+    { { -0.7f, -0.7f, 0.0f }, {0.0f, 1.0f, 0.0f, 1.0f} },
+    { {  0.7f,  0.0f, 0.0f }, {0.0f, 0.0f, 1.0f, 1.0f} }
 };
 
+Vertex polygon[] = {
+    { { 0.0f, 0.0f, 0.0f }, {1.0f, 1.0f, 1.0f, 1.0f} },
+
+    { { 0.0f, 0.7f, 0.0f }, {1.0f, 0.0f, 0.0f, 1.0f} },
+    { { 0.67f, 0.22f, 0.0f }, {0.0f, 1.0f, 0.0f, 1.0f} },
+    { { 0.41f, -0.56f, 0.0f }, {0.0f, 0.0f, 1.0f, 1.0f} },
+    { { -0.41f, -0.56f, 0.0f }, {1.0f, 1.0f, 0.0f, 1.0f} },
+    { { -0.67f, 0.22f, 0.0f }, {1.0f, 0.0f, 1.0f, 1.0f} },
+
+    { { 0.0f, 0.7f, 0.0f }, {1.0f, 0.0f, 0.0f, 1.0f} }
+};
 
 int main(void)
 {
-    GLFWwindow *window;
-    static const char *window_title = "simple GLFW window";
+    GLFWwindow *window = NULL;
+    char *window_title = "simple GLFW window";
 
     glfw_init();
-    glfw_init_window(window, window_title);
+    glfw_init_window(&window, window_title);
 
     glfwMakeContextCurrent(window);
     glad_load_gl();
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-    Mesh *meshes = malloc(sizeof(Mesh) * MAX_MESHES);
+    Mesh *meshes = meshes_create();
     if (!meshes)
     {
-        glfwTerminate(); 
-        fprintf(stderr, "failed to create mesh buffer\n");
+        glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
     int meshesp = 0;
-    Mesh triangle_mesh = mesh_create(triangle, 3, &meshesp, meshes);
+    Mesh triangle_mesh = create_mesh(triangle, sizeof(triangle) / sizeof(Vertex), &meshesp, meshes);
+    Mesh polygon_mesh  = create_mesh(polygon,  sizeof(polygon) / sizeof(Vertex), &meshesp, meshes);
 
     unsigned int shader_program = create_shader_program("vertex-shader.glsl", "fragment-shader.glsl");
 
@@ -90,13 +104,13 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
         glUseProgram(shader_program);
 
-        mesh_draw(&triangle_mesh);
+        mesh_draw(&polygon_mesh, GL_TRIANGLE_FAN);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    
-    glDelete
+
+    meshes_delete(meshes, meshesp);
     glfwTerminate();
     return EXIT_SUCCESS;
 }
@@ -114,9 +128,9 @@ void glfw_init()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 }
 
-void glfw_init_window(GLFWwindow *window, const char *window_title)
+void glfw_init_window(GLFWwindow **window, const char *window_title)
 {
-    if ((window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, window_title, NULL, NULL)) == NULL)
+    if ((*window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, window_title, NULL, NULL)) == NULL)
     {
         fprintf(stderr, "failed to init window\n");
         glfwTerminate();
@@ -124,13 +138,13 @@ void glfw_init_window(GLFWwindow *window, const char *window_title)
     }
 }
 
-void glfw_load_glad()
+void glad_load_gl()
 {
-    if (!gladLoadGLLoader((GLADloadpro)
+    if (!gladLoadGLLoader((GLADloadproc)
                           glfwGetProcAddress))
     {
         fprintf(stderr, "failed to init GLAD\n");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -168,12 +182,14 @@ void shader_program_report_error(GLuint obj, GLenum pname)
         glGetShaderiv(obj, pname, &success);
     else if (pname == GL_LINK_STATUS)
         glGetProgramiv(obj, pname, &success);
+    else
+        return;
 
     if (!success)
     {
         char log[LOG_BUF_SIZE];
         glGetShaderInfoLog(obj, LOG_BUF_SIZE, NULL, log);
-        fprintf("Shader compile or program link error:\n%s\n", log);
+        fprintf(stderr, "Shader compile or program link error:\n%s\n", log);
         exit(EXIT_FAILURE);
     }
 }
@@ -200,16 +216,16 @@ unsigned int create_shader_program(const char *vsf, const char *fsf)
     return program;
 }
 
-Mesh create_mesh(Vertex *vertices, size_t n)
+Mesh create_mesh(Vertex *vertices, size_t n, int *meshesp, Mesh *meshes)
 {
     Mesh mesh;
     mesh.vertex_count = n;
 
-    glGenVertexArray(1, &mesh.VAO);
+    glGenVertexArrays(1, &mesh.VAO);
     glGenBuffers(1, &mesh.VBO);
     glBindVertexArray(mesh.VAO);
     glBindBuffer(GL_ARRAY_BUFFER, mesh.VBO);
-    glBufferData(GL_ARRAY_BUFFER, count * sizeof(Vertex), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, n * sizeof(Vertex), vertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, pos));
     glEnableVertexAttribArray(0);
@@ -217,11 +233,37 @@ Mesh create_mesh(Vertex *vertices, size_t n)
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
-    return mesh; 
+
+    meshes[*meshesp++] = mesh;
+    return mesh;
 }
 
-void mesh_draw(const Mesh *mesh)
+void mesh_draw(const Mesh *mesh, GLenum type)
 {
     glBindVertexArray(mesh->VAO);
-    glDrawArrays(GL_TRIANGLES, 0, mesh->vertex_count);
+    glDrawArrays(type, 0, mesh->vertex_count);
+}
+
+Mesh *meshes_create(void)
+{
+    Mesh *meshes = malloc(sizeof(Mesh) * MAX_MESHES);
+    if (!meshes)
+    {
+        fprintf(stderr, "failed to init meshes\n");
+        return NULL;
+    }
+ 
+    return meshes;
+}
+
+void meshes_delete(Mesh *meshes, int meshesp)
+{
+    for (int i = 0; i < meshesp; i++)
+    {
+        glDeleteVertexArrays(1, &meshes[i].VAO);
+        glDeleteBuffers(1, &meshes[i].VBO);
+    }
+
+    free(meshes);
+    meshes = NULL;
 }
