@@ -12,10 +12,11 @@ from the command line.
 #include <ctype.h>
 #include <stdint.h>
 
-#define BUFFER_SIZE     1000
-#define MAX_GROUP_SIZE  256
-#define WORD_SIZE       32
-#define DEFAULT_N_CHARS 6
+#define BUFFER_SIZE      1000
+#define MAX_GROUP_SIZE   256
+#define WORD_SIZE        32
+#define DEFAULT_N_CHARS  6
+#define TNODE_QUEUE_SIZE 256
 
 struct tnode
 {
@@ -25,9 +26,21 @@ struct tnode
     struct tnode *right;
 };
 
+struct tnode_queue
+{
+    struct tnode *q[TNODE_QUEUE_SIZE];
+    int rear;
+    int front;
+};
+
 struct tnode *talloc(void);
 void addtree(struct tnode *, char *);
-int strsuf(const char * restrict, const char * restrict);
+int strsufix(const char * restrict, const char * restrict);
+
+void init_tnode_queue(struct tnode_queue *q);
+void is_empty(struct tnode_queue *q);
+void enqueue(struct tnode_queue *q, struct tnode *node);
+struct tnode *dequeue(struct tnode_queue *q);
 
 static char input_buf[BUFFER_SIZE];
 static char bufp = 0;
@@ -42,22 +55,28 @@ int main(void)
     return EXIT_SUCCESS;
 }
 
-struct tnode *talloc(void)
+struct tnode *talloc(char *w)
 {
+    if (!w)
+        return NULL;
     struct tnode *p = malloc(sizeof(struct tnode));
     if (!p)
         return NULL;
 
     p->list_words = malloc(sizeof(char *) * MAX_GROUP_SIZE);
-    if (!p->list_words)
+    p->prefix = malloc(sizeof(char) * (nchars + 1));
+    if (!p->list_words || !p->prefix)
     {
         free(p);
         return NULL;
     }
-
-    for (int i = 0; i < MAX_GROUP_SIZE; i++)
+    
+    strcpy(p->list_words[0], w); // make sure to make w fit into p->list_words[0]
+    for (int i = 1; i < MAX_GROUP_SIZE; i++)
         p->list_words[i] = NULL;
-    p->prefix = NULL;
+    
+    strncpy(p->prefix, w, nchars);
+    p->prefix[nchars] = '\0';
     p->left = p->right = NULL;
     return p;
 }
@@ -77,39 +96,80 @@ void ungetch(char c)
         input_buf[bufp++] = c;
 }
 
-// if the root node is NULL, add a new node with the word w, if the word w is less than rquired
-// N words, skip it, else add the first characters as a new prefix to the tree
-// first, before appending it to the tree, traverse the tree by comparing to the right and left
-// nodes suffixes lexicographically, if there is any, so strcmp(p->prefix, word) and if < 0
-//
-// begin with the root node:
 void addtree(struct tnode *p, char *w)
 {
-    uint64_t len = strlen(w);
-    if (len < nchars)
+    if (!w)
+        return;
+    
+    if (strlen(w) < nchars)
         return;
 
     if (p == NULL)
     {
-        p = talloc();
+        p = talloc(w);
         if (!p)
             return;
     }
+    
+    int found = 0;
+    struct tnode_queue q; 
+    init_tnode_queue(&q);
+    enqueue(&q, p);
 
-    int cond;
-    struct tnode *np = p;
-    while (np)
+    struct tnode *np;
+    while (!is_empty(&q))
     {
-        if ()
+        np = dequeue(&q);
+        if (strprefix(np->prefix, w))
+            for (int i = 0; i < MAX_GROUP_SIZE; i++)
+                if (p->list_words[i] == NULL)
+                {
+                    p->list_words[i] = w;
+                    found = 1;
+                    break;
+                }
+
+        if (np->left) enqueue(&q, np->left);
+        if (np->right) enqueue(&q, np->right);
+    }
+    
+    if (found) return;
+    if (!np->right)
+    {
+        np->right = talloc(w);
+        if (!np->right) return;
+        
+                
     }
 }
 
-int strsuf(const char *restrict str, const char *restrict suffix)
+int strprefix(const char *restrict str, const char *restrict prefix)
 {
-    while (*suffix != '\0' && *str != '\0' && *str++ == *suffix++)
+    while (*prefix != '\0' && *str != '\0' && *str++ == *prefix++)
         ;
 
-    if (*suffix == '\0')
-        return 0;
-    else return 1;
+    if (*prefix == '\0')
+        return 1;
+    else return 0;
+}
+
+void init_tnode_queue(struct tnode_queue *q)
+{
+    q->rear  = -1;
+    q->front = 0;
+}
+
+void is_empty(struct tnode_queue *q)
+{
+    return q->front > q->rear;
+}
+
+void enqueue(struct tnode_queue *q, struct tnode *node)
+{
+    q->q[++q->rear] = node;
+}
+
+struct tnode *dequeue(struct tnode_queue *q)
+{
+    return q->q[q->front++];
 }
