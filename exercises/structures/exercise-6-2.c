@@ -11,12 +11,12 @@ from the command line.
 #include <string.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <stdbool.h>
 
-#define BUFFER_SIZE      1000
 #define MAX_GROUP_SIZE   256
 #define WORD_SIZE        32
 #define DEFAULT_N_CHARS  6
-#define TNODE_QUEUE_SIZE 256
+#define FILE_BUFFER_SIZE 8192
 
 struct tnode
 {
@@ -26,32 +26,38 @@ struct tnode
     struct tnode *right;
 };
 
-struct tnode_queue
+enum
 {
-    struct tnode *q[TNODE_QUEUE_SIZE];
-    int rear;
-    int front;
-};
+    NORMAL,
+    QUOTE,
+    DOUBLE_QUOTE,
+    COMMENT,
+    MCOMMENT,
+} stinput;
 
-struct tnode *talloc(void);
-void addtree(struct tnode *, char *);
-int strsufix(const char * restrict, const char * restrict);
+struct tnode *talloc(char *w);
+struct tnode *addtree(struct tnode *, char *);
+int strprefix(const char * restrict, const char * restrict);
 
-void init_tnode_queue(struct tnode_queue *q);
-void is_empty(struct tnode_queue *q);
-void enqueue(struct tnode_queue *q, struct tnode *node);
-struct tnode *dequeue(struct tnode_queue *q);
+char *read_file(const char *filename);
+void getword(char *dest, char *src, int *p);
 
-static char input_buf[BUFFER_SIZE];
+static char input_buf[FILE_BUFFER_SIZE];
 static char bufp = 0;
 static uint64_t nchars = DEFAULT_N_CHARS;
 char getch(void);
 void ungetch(char);
-void terminate(void);
+void terminate(char *fbuf, struct tnode *p);
 
-int main(void)
+int main(int argc, char **argv)
 {
+    if (argc != 2)
+    {
+        fprintf(stderr, "Usage: ./cmp cfile.c\n");
+        return -1;
+    }
 
+    struct tnode *root = NULL;
     return EXIT_SUCCESS;
 }
 
@@ -64,83 +70,61 @@ struct tnode *talloc(char *w)
         return NULL;
 
     p->list_words = malloc(sizeof(char *) * MAX_GROUP_SIZE);
-    p->prefix = malloc(sizeof(char) * (nchars + 1));
-    if (!p->list_words || !p->prefix)
+    if (!p->list_words)
     {
         free(p);
         return NULL;
     }
-    
-    strcpy(p->list_words[0], w); // make sure to make w fit into p->list_words[0]
-    for (int i = 1; i < MAX_GROUP_SIZE; i++)
+
+    for (int i = 0; i < MAX_GROUP_SIZE; i++)
         p->list_words[i] = NULL;
-    
+    p->prefix = malloc(sizeof(char) * (nchars + 1));
+    if (!p->prefix)
+    {
+        free(p->list_words);
+        free(p);
+        return NULL;
+    }
     strncpy(p->prefix, w, nchars);
     p->prefix[nchars] = '\0';
+    p->list_words[0] = strdup(w);
+    if (!p->list_words[0])
+    {
+        free(p->list_words[0]);
+        free(p->prefix);
+        free(p);
+        return NULL;
+    }
+
     p->left = p->right = NULL;
     return p;
 }
 
-char getch(void)
+struct tnode *addtree(struct tnode *p, char *w)
 {
-    return (bufp > 0) ? input_buf[--bufp] : getchar();
-}
-
-void ungetch(char c)
-{
-    if (bufp >= BUFFER_SIZE)
-    {
-        fprintf(stderr, "attempt to push to full buffer\n");
-        terminate();
-    } else
-        input_buf[bufp++] = c;
-}
-
-void addtree(struct tnode *p, char *w)
-{
-    if (!w)
-        return;
-    
     if (strlen(w) < nchars)
-        return;
+        return p;
+    if (!p)
+        return talloc(w);
 
-    if (p == NULL)
-    {
-        p = talloc(w);
-        if (!p)
-            return;
-    }
-    
-    int found = 0;
-    struct tnode_queue q; 
-    init_tnode_queue(&q);
-    enqueue(&q, p);
+    int cmp = strncmp(w, p->prefix, nchars);
+    if (cmp == 0)
+        for (int i = 0; i < MAX_GROUP_SIZE; i++)
+        {
+            if (p->list_words[i] == NULL)
+            {
+                p->list_words[i] = strdup(w);
+                break;
+            }
 
-    struct tnode *np;
-    while (!is_empty(&q))
-    {
-        np = dequeue(&q);
-        if (strprefix(np->prefix, w))
-            for (int i = 0; i < MAX_GROUP_SIZE; i++)
-                if (p->list_words[i] == NULL)
-                {
-                    p->list_words[i] = w;
-                    found = 1;
-                    break;
-                }
-
-        if (np->left) enqueue(&q, np->left);
-        if (np->right) enqueue(&q, np->right);
-    }
-    
-    if (found) return;
-    if (!np->right)
-    {
-        np->right = talloc(w);
-        if (!np->right) return;
-        
-                
-    }
+            if (strcmp(p->list_words[i], w) == 0)
+                break;
+        }
+    else if (cmp < 0)
+        p->left = addtree(p->left, w);
+    else
+        p->right = addtree(p->right, w);
+    return p;
 }
 
 int strprefix(const char *restrict str, const char *restrict prefix)
@@ -153,23 +137,75 @@ int strprefix(const char *restrict str, const char *restrict prefix)
     else return 0;
 }
 
-void init_tnode_queue(struct tnode_queue *q)
+void read_file(const char *filename, char *buf)
 {
-    q->rear  = -1;
-    q->front = 0;
+    FILE *fp = fopen(filename, 'r');
+    if (!fp)
+        return;
+
+    fseek(fp, 0, SEEK_END);
+    size_t s = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    int64_t bytes = fread(buf, sizeof(char), s, fp);
+    if (bytes > 0 && bytes < FILE_BUFFER_SIZE - 1)
+        buf[bytes++] = '\0';
+    else
+    fclose(fp);
 }
 
-void is_empty(struct tnode_queue *q)
+void getword(char *dest, char *src, int *p)
 {
-    return q->front > q->rear;
+    
+    switch (stinput)
+    {
+        case NORMAL:
+            int i;
+            for (i = 0 ; i < WORD_SIZE - 1 && isalpha(src[*p]); i++)
+                dest[i] = src[*p++];
+            dest[i] = '\0';
+            break;
+        case QUOTE:
+            while (src[*p++] != '\'')
+                ; 
+            break;
+        case DOUBLE_QUOTE:
+            while (src[*p++] != '\"')
+                ;
+            break;
+        case COMMENT:
+            while (src[*p++] != ' ')
+                ;
+            break;
+        case MCOMMENT:
+            while (src[*p] == '*' && src[*p + 1] == '/')
+                *p += 2;
+            break;
+    }
 }
 
-void enqueue(struct tnode_queue *q, struct tnode *node)
+void terminate(char *fbuf, struct tnode *p)
 {
-    q->q[++q->rear] = node;
+    if (!p || !fbuf)
+    {
+        free(fbuf);
+        free(p);
+        return;
+    }
+
 }
 
-struct tnode *dequeue(struct tnode_queue *q)
+char getch(void)
 {
-    return q->q[q->front++];
+    return (bufp > 0) ? input_buf[--bufp] : getchar();
+}
+
+void ungetch(char c)
+{
+    if (bufp >= FILE_BUFFER_SIZE)
+    {
+        fprintf(stderr, "attempt to push to full buffer\n");
+        exit(EXIT_FAILURE);
+    } else
+        input_buf[bufp++] = c;
 }

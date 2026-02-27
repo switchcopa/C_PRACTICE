@@ -1,0 +1,10 @@
+
+
+the core loop goes like this: 
+
+find out how many characters do we want for the prefix
+read each variable/word in a C program
+iterate through the tree
+if the prefix of the variable matches any of the groups
+add it to the list
+else create a new group, add the word to the list
