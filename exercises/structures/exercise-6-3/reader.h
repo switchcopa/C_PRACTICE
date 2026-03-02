@@ -3,15 +3,15 @@
 
 #define INPUT_BUFFER_SIZE 5024
 
-#include <stddef.h>
+#include <sys/types.h>
 
 struct input_reader
 {
     char buffer[INPUT_BUFFER_SIZE];
-    size_t buflen;
+    ssize_t buflen;
     int bufp;
 };
 
-int read_input(struct input_reader *r);
+ssize_t read_input(struct input_reader *r);
 
 #endif

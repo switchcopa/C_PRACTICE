@@ -8,7 +8,7 @@ struct tnode *talloc(const char *word)
     struct tnode *p = malloc(sizeof(struct tnode));
     if (!p) return NULL;
 
-    strncpy(p->word, word, WORD_SIZE - 1);
+    strcpy(p->word, word);
     p->left = p->right = NULL;
     p->linesp = -1;
     return p;
@@ -37,7 +37,8 @@ struct tnode *tree_add(struct tnode *root, char *key, int line)
 
 void tlines_add(struct tnode *p, int line)
 {
-    p->lines[++p->linesp] = line;
+    if (p->linesp >= 0 && p->linesp < MAX_LINES_APPEARANCE - 1)
+        p->lines[++p->linesp] = line;
 }
 
 void tfree(struct tnode *p)
@@ -47,5 +48,4 @@ void tfree(struct tnode *p)
     tfree(p->left);
     tfree(p->right);
     free(p);
-    p = NULL;
 }

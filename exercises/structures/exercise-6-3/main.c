@@ -12,7 +12,7 @@ static const char *noise[] = {
 };
 
 static int noise_binsearch(const char *word);
-static void getword(char *dest, const char *src, int *p, char *c);
+static char *getword(const char * restrict src, int *bufp);
 static void treeprint(struct tnode *tree);
 
 int main(void)
@@ -25,15 +25,16 @@ int main(void)
     }
 
     int line = 0;
-    for (int i = 0; i < ir.bufp; i++)
-    {
-        char word[WORD_SIZE], c;
-        getword(word, ir.buffer, &i, &c);
+    while (ir.bufp < ir.buflen - 1) {
+        char *word = getword(ir.buffer, &ir.bufp);
+        if (!word) {
+            fprintf(stderr, "failed to allocate memory for word\n");
+            return EXIT_FAILURE;
+        }
+
         if (word[0] != '\0' && !noise_binsearch(word))
             tree = tree_add(tree, word, line);
-
-        if (c == '\n') line++;
-        else if (c == '\0') break;
+        free(word);
     }
 
     treeprint(tree);
@@ -61,19 +62,26 @@ static int noise_binsearch(const char *word)
     return 0;
 }
 
-static char *getword2(const char * restrict src, int *bufp);
-
-static void getword(char *dest, const char *src, int *p, char *c)
+static char *getword(const char * restrict src, int *bufp)
 {
-    int i = *p, j = 0;
-    while (src[i] != '\0' && !isalnum((unsigned char)src[i++]))
-        ;
-    while (src[i] != '\0' && isalnum((unsigned char)src[i]))
-        dest[j++] = src[i++];
-    dest[j] = '\0';
+    char *buf = malloc(sizeof(char) * (WORD_SIZE + 1));
+    if (!buf) return NULL;
+   
+    while (src[*bufp] != '\0' && !isalnum((unsigned char)src[*bufp++]));
+    
+    if (src[*bufp] == '\0')
+    {
+        buf[0] = '\0';
+        return buf;
+    }
 
-    *c = src[i];
-    *p = (src[i] == '\0') ? i : i + 1;
+    int i = 0;
+    while(i < WORD_SIZE - 1 && src[*bufp] != '\0' &&
+         isalnum((unsigned char)src[*bufp]))
+        buf[i++] = src[*bufp++];
+
+    buf[i] = '\0';
+    return buf;
 }
 
 static void treeprint(struct tnode *tree)
