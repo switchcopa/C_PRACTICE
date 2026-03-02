@@ -3,9 +3,12 @@
 
 #define INPUT_BUFFER_SIZE 5024
 
+#include <stddef.h>
+
 struct input_reader
 {
     char buffer[INPUT_BUFFER_SIZE];
+    size_t buflen;
     int bufp;
 };
 

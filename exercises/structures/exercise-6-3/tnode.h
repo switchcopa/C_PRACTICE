@@ -15,6 +15,7 @@ struct tnode
 
 struct tnode *talloc(const char *word);
 void tlines_add(struct tnode *p, int line);
-void tfree(struct tnode **p); // the caller should expect to pass the address of the pointer to the preffered node
+void tfree(struct tnode *p);
+struct tnode *tree_add(struct tnode *root, char *key, int line);
 
 #endif
