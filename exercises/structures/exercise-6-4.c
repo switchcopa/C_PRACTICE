@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
+#include <ctype.h>
 
 #define WORD_SIZE 128
-#define TNODEPTR_ARR_SIZE 256
+#define TNODEPTR_ARR_SIZE 512
 #define BUFFER_SIZE 8192
 
 struct tnode
@@ -19,7 +19,7 @@ struct tnode *talloc(const char *word);
 struct tnode *tree_add(struct tnode *root, char *word);
 void tree_to_array(struct tnode *root, struct tnode **arr, int *idx);
 int cmp_freq_desc(const void *a, const void *b);
-static void getword(const char *dest, const char *src, int *p, int sup);
+static void getword(char *dest, const char *src, int *p, int sup);
 
 int main(void)
 {
@@ -28,21 +28,24 @@ int main(void)
         fprintf(stderr, "failed to alloc memory for buffer\n");
         return EXIT_FAILURE;
     }
-   
+ 
     int i = 0;
     int c;
     while ((c = getchar()) != EOF && i < BUFFER_SIZE - 1)
-        buf[i] = c;
+        buf[i++] = c;
     buf[i] = '\0';
-    
+
     int bufp = 0;
     struct tnode *tree = NULL;
     while (buf[bufp] != '\0')
     {
         char word[WORD_SIZE];
         getword(word, buf, &bufp, WORD_SIZE);
+
+        if (word[0] == '\0')
+            continue;
         tree = tree_add(tree, word);
-    } 
+    }
 
     struct tnode **arr = malloc(sizeof(struct tnode *) * TNODEPTR_ARR_SIZE);
     if (!arr) {
@@ -50,13 +53,13 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    int idx;
+    int idx = 0;
     tree_to_array(tree, arr, &idx);
-    qsort(arr, TNODEPTR_ARR_SIZE, sizeof(struct tnode *), cmp_freq_desc);
-    
-    for (int i = 0; i < TNODE_PTR_ARR_SIZE; i++)
+    qsort(arr, idx, sizeof(struct tnode *), cmp_freq_desc);
+
+    for (int i = 0; i < idx; i++)
         printf("%d %s\n", arr[i]->count, arr[i]->word);
-     
+
     return EXIT_SUCCESS;
 }
 
@@ -106,13 +109,13 @@ int cmp_freq_desc(const void *a, const void *b)
     return y->count - x->count;
 }
 
-static void getword(const char *dest, const char *src, int *p, int sup)
+static void getword(char *dest, const char *src, int *p, int sup)
 {
     int i = 0;
-    while (!isalnum((unsigned char) src[*p]) && *p < sup - 1)
-        *p++;
-    for (i = 0; src[*p] != '\0' && isalnum((unsigned char) src[*p]) && *p < sup - 1; i++)
-        dest[i] = src[*p++];
-    
+    while (src[*p] && !isalnum((unsigned char) src[*p]))
+        (*p)++;
+    for (i = 0; src[*p] != '\0' && isalnum((unsigned char) src[*p]) && i < sup - 1; i++)
+        dest[i] = src[(*p)++];
+
     dest[i] = '\0';
 }
