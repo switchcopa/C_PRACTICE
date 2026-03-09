@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <ctypes.h>
+#include <ctype.h>
 #include <sys/types.h>
 
 #define HASHSIZE    101
@@ -34,16 +34,14 @@ void appendbuf(char *buf, int *i, int c);
 int main(int argc, char **argv)
 {
     if (argc != 2) {
-        fprintf(stderr, "Usage: ./app \"filename.c\\n");
+        fprintf(stderr, "Usage: ./app \"filename.c\"\n");
         return EXIT_FAILURE;
     }
 
     const char *filename = argv[1];
     ssize_t size = 0;
     char *fbuf = loadfile(filename, &size);
-    char *outbuf = malloc(sizeof(char) * (FBUFSIZE + 1));
-    int outbufp = 0;
-    if (!fbuf || !outbuf || !size)
+    if (!fbuf)
         goto allocerr;
 
     enum {
@@ -60,64 +58,123 @@ int main(int argc, char **argv)
         switch (state) {
 
             case NORMAL:
-                if (c == '"') state = STRING;
-                else if (c == '\'') state = CHAR;
-                else if (prev == '/' && c == '/') state = COMMENT;
-                else if (prev == '/' && c == '*') state = MCOMMENT;
-                else if (c == '#') {
-                    char word[WORD_SIZE];
-                    int j = 0;
-
-                    // read preprocessor directive until fbuf[i] is space or something else
-                    while (i < size && isspace(fbuf[i++]))
-                        ;
-                    while (i < size && isalpha(fbuf[i]) && j < WORD_SIZE - 1)
-                        word[j++] = fbuf[i++];
-                    word[j] = '\0';
-                    if (strcmp(word, "#define") == 0) {
-                        while (i < size && isspace(fbuf[i++]))
-                            ;
-                        char name[WORD_SIZE];
-                        char value[WORD_SIZE];
-                        int k = 0;
-
-                        while (i < size && (isalnum(fbuf[i]) || fbuf[i] == '_') && k < WORD_SIZE - 1)
-                            name[k++] = fbuf[i++];
-                        name[k] = '\0';
-
-                        while (i < size && isspace(fbuf[i++]))
-                            ;
-                        k = 0;
-                        while (i < size && !isspace(fbuf[i]) && k < WORD_SIZE - 1)
-                            value[k++] = fbuf[i++];
-                        value[k] = '\0';
-
-                        install(name, value);
-                    }
+                if (prev == '/') {
+                    if (c == '/') { state = COMMENT; prev = 0; continue; }
+                    else if (c == '*') { state = MCOMMENT; prev = 0; continue; }
                 }
+                else if (prev == '#') {
+                    // handle preprocessor directive
+                    // skip whitespace
+                    while (i < size && (c = fbuf[i]) && (c == ' ' || c == '\t')) i++;
+                    int start = i;
+                    while (i < size && (c = fbuf[i]) && ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))) i++;
+                    char directive[16];
+                    int len = i - start;
+                    strncpy(directive, fbuf + start, len);
+                    directive[len] = '\0';
+
+                    if (strcmp(directive, "define") == 0) {
+                        // read name
+                        while (i < size && (c = fbuf[i]) && (c == ' ' || c == '\t')) i++;
+                        int nstart = i;
+                        while (i < size && (c = fbuf[i]) && 
+                            ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'))
+                            i++;
+                        int nlen = i - nstart;
+                        char name[WORD_SIZE];
+                        strncpy(name, fbuf + nstart, nlen);
+                        name[nlen] = '\0';
+
+                        // skip whitespace
+                        while (i < size && (c = fbuf[i]) && (c == ' ' || c == '\t')) i++;
+
+                        // read replacement until newline
+                        int rstart = i;
+                        while (i < size && (c = fbuf[i]) && c != '\n') i++;
+                        int rlen = i - rstart;
+                        char defn[BUFSIZE];
+                        strncpy(defn, fbuf + rstart, rlen);
+                        defn[rlen] = '\0';
+
+                        install(name, defn);
+
+                        prev = 0; // reset
+                        continue;
+                    } 
+                    else if (strcmp(directive, "undef") == 0) {
+                        // read name
+                        while (i < size && (c = fbuf[i]) && (c == ' ' || c == '\t')) i++;
+                        int nstart = i;
+                        while (i < size && (c = fbuf[i]) && 
+                            ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'))
+                            i++;
+                        int nlen = i - nstart;
+                        char name[WORD_SIZE];
+                        strncpy(name, fbuf + nstart, nlen);
+                        name[nlen] = '\0';
+
+                        undef(name);
+
+                        prev = 0;
+                        continue;
+                    }
+                    prev = 0;
+                }
+
+                // normal token processing
+                if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_') {
+                    int start = i;
+                    while (i < size && (c = fbuf[i]) &&
+                        ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || 
+                            (c >= '0' && c <= '9') || c == '_')) i++;
+                    int len = i - start;
+                    char token[WORD_SIZE];
+                    strncpy(token, fbuf + start, len);
+                    token[len] = '\0';
+
+                    struct nlist *np = lookup(token);
+                    if (np)
+                        printf("%s", np->defn); // replace
+                    else
+                        printf("%s", token);
+
+                    i--; // adjust for for-loop increment
+                }
+                else {
+                    putchar(c);
+                }
+
+                if (c == '/') prev = '/';
+                else if (c == '#') prev = '#';
+                else prev = 0;
+
+                break;
+
+            case COMMENT:
+                if (c == '\n') state = NORMAL;
+                putchar(c);
+                break;
+
+            case MCOMMENT:
+                if (prev == '*' && c == '/') state = NORMAL;
+                prev = c;
+                putchar(c);
                 break;
 
             case STRING:
+                putchar(c);
                 if (c == '"' && prev != '\\') state = NORMAL;
-                appendbuf(outbuf, &outbufp, c);
+                prev = c;
                 break;
-            case CHAR:
-                if (c == '\'' && prev != '\\') state = NORMAL;
-                appendbuf(outbuf, &outbufp, c);
-                break;
-            case COMMENT:
-                if (c == '\n') state = NORMAL;
-                appendbuf(outbuf, &outbufp, c);
-                break;
-            case MCOMMENT:
-                if (prev == '*' && c == '/') state = NORMAL;
-                appendbuf(outbuf, &outbufp, c);
-                break;
-        }
 
-        prev = c;
+            case CHAR:
+                putchar(c);
+                if (c == '\'' && prev != '\\') state = NORMAL;
+                prev = c;
+                break;
     }
     return EXIT_SUCCESS;
+}
 allocerr:
     fprintf(stderr, "allocation failure\n");
     return EXIT_FAILURE;
@@ -210,11 +267,11 @@ char *loadfile(const char *filename, ssize_t *outsize)
     fseek(fp, 0, SEEK_END);
     size_t fsize = ftell(fp);
     fseek(fp, 0, SEEK_SET);
-    
+
     size_t n = fread(fbuffer, sizeof (char), fsize, fp);
     if (n < fsize && ferror(fp)) goto err;
 
-    fbuffer[size] = '\0';
+    fbuffer[fsize] = '\0';
     fclose(fp);
 
     *outsize = fsize;
@@ -224,11 +281,6 @@ err:
         return NULL;
 
     fclose(fp);
-    *outsize = fsize;
+    *outsize = -1;
     return NULL;
-}
-
-void appendbuf(char *buf, int *i, char c)
-{
-    buf[(*i)++] = c;
 }
