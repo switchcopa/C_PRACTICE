@@ -5,10 +5,15 @@
 #define BUFSIZE 8024
 
 int main(int argc, char **argv) {
-    if (argc < 3) {
+    if (argc < 2) {
         fprintf(stderr, "Usage: ./grep \"pattern\" file1 file2 ...\n");
         exit(EXIT_FAILURE);
     }
+    
+    int mode; 
+    if (argc == 2)
+        mode = 1;
+    else mode = 0;
 
     const char *pattern = argv[1];
     int nfiles = 2;
@@ -17,12 +22,15 @@ int main(int argc, char **argv) {
     int getline(char *dest, int max, FILE *fsrc);
 
     char line[BUFSIZE];
-    while (nfiles < argc) {
-        FILE *fp = fopen(argv[nfiles], "r");
+    while (mode || nfiles < argc) {
+        FILE *fp = !mode ? fopen(argv[nfiles], "r") : stdin;
         if (!fp) { fprintf(stderr, "failed to open %s\n", argv[nfiles++]); continue; }
         while (getline(line, BUFSIZE, fp))
             if (mstrstr(line, pattern))
-                printf("%s: %s", argv[nfiles], line);
+                printf("%s: %s", !mode ? argv[nfiles] : "stdin", line);
+        if (mode) break;
+
+        fclose(fp);
         nfiles++;
     }
 }
