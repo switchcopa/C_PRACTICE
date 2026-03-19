@@ -212,3 +212,37 @@ main(int argc, char *argv[])
             error("cp: write error on file %s", argv[2]);
     return 0;
 }
+
+This program creates the output file with fixed permissions of 0666. With the stat system call,
+described in Section 8.6, we can determine the mode of an existing file and thus give the same
+mode to the copy.
+
+Notice that the function error is called with variable argument lists much like printf. The
+implementation of error illustrates how to use another member of the printf family.
+
+The standard library function vprintf is like printf except that the variable argument list is
+replaced by a single argument that has been initialized by calling the va_start macro.
+Similarly, vfprintf and vsprintf match fprintf and sprintf.
+
+#include <stdarg.h>
+
+void error(char *fmt, ...)
+{
+    va_list args;
+
+    va_start(args, fmt);
+    fprintf(stderr, "error: ");
+    vprintf(stderr, fmt, args);
+    fprintf(stderr, "\n");
+    va_end(args);
+
+    exit(1);
+}
+
+The function close(int fd) breaks connection between a file descriptor and an open file,
+and frees the file descriptor for use with some other file; it corresponds to fclose in the 
+standard library except that there is no buffer to flush.
+Termination of a program via exit or return from the main program closes all open files.
+
+The function unlink(char *name) removes the file name from the file system. it corresponds to the 
+standard library function remove.
