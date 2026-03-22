@@ -8,23 +8,35 @@
 
 const char *toktypes[] =
 {
-        "TOKEN_IDENT",
-        "TOKEN_EQUAL",
-        "TOKEN_INT",
-        "TOKEN_DOUBLE",
-        "TOKEN_STRING",
-        "TOKEN_PLUS",
-        "TOKEN_MINUS",
-        "TOKEN_STAR",
-        "TOKEN_FSLASH",
-        "TOKEN_LPAREN",
-        "TOKEN_RPAREN",
-        "TOKEN_ERROR",
-        "TOKEN_ALLOCERR",
-        "TOKEN_SPACE",
-        "TOKEN_NEWLINE",
-        "TOKEN_NULL",
-        "TOKEN_UNKNOWN"
+    "TOKEN_IDENT",
+    "TOKEN_EQUAL",
+    "TOKEN_INT",
+    "TOKEN_DOUBLE",
+    "TOKEN_STRING",
+    "TOKEN_PLUS",
+    "TOKEN_MINUS",
+    "TOKEN_STAR",
+    "TOKEN_FSLASH",
+    "TOKEN_LPAREN",
+    "TOKEN_RPAREN",
+    "TOKEN_ERROR",
+    "TOKEN_ALLOCERR",
+    "TOKEN_SPACE",
+    "TOKEN_NEWLINE",
+    "TOKEN_NULL",
+    "TOKEN_UNKNOWN",
+    "TOKEN_ELSE",
+    "TOKEN_FOR",
+    "TOKEN_IF",
+    "TOKEN_WHILE"
+};
+
+const keyword keywords[] =
+{
+    { "else", TOKEN_ELSE },
+    { "for", TOKEN_FOR },
+    { "if", TOKEN_IF },
+    { "while", TOKEN_WHILE }
 };
 
 Lexer _lexer;
@@ -68,12 +80,35 @@ get_num(char **buf)
     return t;
 }
 
+static toktype
+keyword_search(char *str, size_t size)
+{
+    int low = 0;
+    int high = (int)(sizeof(keywords) / sizeof(keywords[0])) - 1;
+
+    while (low <= high)
+    {
+        int mid = (low + high) / 2;
+        int cmp = strncmp(str, keywords[mid].kw, size);
+        
+        const char *kw = keywords[mid].kw;
+        if (cmp == 0 && kw[size] == '\0')
+            return keywords[mid].type;
+        else if (cmp < 0)
+            high =  mid - 1;
+        else 
+            low = mid + 1; 
+    }
+
+    return TOKEN_IDENT;
+}
+
 static Token
 get_ident(char **buf)
 {
     char *p = *buf;
     Token t;
-    int i;
+    size_t i;
     
     for (i = 0; valid_ident(*p) && i < IDENTIFIER_SIZE - 1; i++)
         t.ident[i] = *p++;
@@ -84,8 +119,8 @@ get_ident(char **buf)
         t.type = TOKEN_ERROR;
         return t;
     }
-
-    t.type = TOKEN_IDENT;
+    
+    t.type = keyword_search(t.ident, i);
     *buf = p;
     return t;
 }

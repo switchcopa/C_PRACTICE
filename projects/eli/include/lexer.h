@@ -26,29 +26,34 @@
 #define TOKEN_FLAG_CONSTANT       (BIT(2))
 #define TOKEN_FLAG_ALLOCATED      (BIT(3))
 
+typedef enum
+{
+    TOKEN_IDENT,
+    TOKEN_EQUAL,
+    TOKEN_INT,
+    TOKEN_DOUBLE,
+    TOKEN_STRING,
+    TOKEN_PLUS,
+    TOKEN_MINUS,
+    TOKEN_STAR,
+    TOKEN_FSLASH,
+    TOKEN_LPAREN,
+    TOKEN_RPAREN,
+    TOKEN_ERROR,
+    TOKEN_ALLOCERR,
+    TOKEN_SPACE,
+    TOKEN_NEWLINE,
+    TOKEN_NULL,
+    TOKEN_UNKNOWN,
+    TOKEN_ELSE,
+    TOKEN_FOR,
+    TOKEN_IF,
+    TOKEN_WHILE
+} toktype;
+
 typedef struct token
 {
-    enum
-    {
-        TOKEN_IDENT,
-        TOKEN_EQUAL,
-        TOKEN_INT,
-        TOKEN_DOUBLE,
-        TOKEN_STRING,
-        TOKEN_PLUS,
-        TOKEN_MINUS,
-        TOKEN_STAR,
-        TOKEN_FSLASH,
-        TOKEN_LPAREN,
-        TOKEN_RPAREN,
-        TOKEN_ERROR,
-        TOKEN_ALLOCERR,
-        TOKEN_SPACE,
-        TOKEN_NEWLINE,
-        TOKEN_NULL,
-        TOKEN_UNKNOWN
-    } type;
-
+    toktype type;
     union
     {
         char ident[IDENTIFIER_SIZE];
@@ -68,9 +73,16 @@ typedef struct lexer
     size_t capacity;
 } Lexer;
 
+typedef struct
+{
+    char *kw;
+    toktype type;
+} keyword;
+
 Lexer *lex(char *buf);
 extern Lexer _lexer;
 extern size_t _line;
 extern const char *toktypes[];
+extern const keyword keywords[];
 
 #endif
