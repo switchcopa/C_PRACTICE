@@ -17,6 +17,12 @@
 #define UNEXPECTED_SYNTAX_ERROR(c, line) (fprintf(stderr, "Syntax Error: Unexpected %c at line %zu\n", c , line))
 #define valid_ident(c) (isalnum(c) || c == '_')
 
+#define BIT(n)         (1U << (n))
+#define FLAG_KEYWORD   (BIT(0))
+#define FLAG_OPERATOR  (BIT(1))
+#define FLAG_CONSTANT  (BIT(2))
+#define FLAG_ALLOCATED (BIT(3))
+
 typedef struct token
 {
     enum
@@ -48,6 +54,8 @@ typedef struct token
         int i;
         char c;
     };
+
+    unsigned char flags;
 } Token;
 
 typedef struct lexer
@@ -57,8 +65,9 @@ typedef struct lexer
     size_t capacity;
 } Lexer;
 
-void lex(char *buf);
+Lexer *lex(char *buf);
 extern Lexer _lexer;
 extern size_t _line;
+extern const char *toktypes[];
 
 #endif

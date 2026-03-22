@@ -20,13 +20,15 @@ get_num(char **buf)
 
     for (i = 0; (*p == '.' || isdigit(*p)) && i < BUFSIZE - 1; i++)
     {
-        if (*p == '.')
+        if (*p == '.') {
             if (isfloat) {
                 UNEXPECTED_SYNTAX_ERROR(*p, _line);
                 t.type = TOKEN_ERROR;
                 return t;
             } else
                 isfloat = true;
+        }
+
         num[i] = *p++;
     }
 
@@ -163,11 +165,11 @@ Token
 next_token(char **buf)
 {
     char *p = *buf;
-    if (isalpha(*p)) return get_ident(*p);
-    if (isdigit(*p)) return get_num(*p);
-    if (*p == '"') return get_string(*p);
+    if (isalpha(*p)) return get_ident(buf);
+    if (isdigit(*p)) return get_num(buf);
+    if (*p == '"') return get_string(buf);
 
-    return get_symbol(*p);
+    return get_symbol(buf);
 }
 
 int
@@ -176,7 +178,7 @@ lexer_add_token(Token t)
     if (_lexer.ntokens < _lexer.capacity)
         _lexer.Tokens[_lexer.ntokens++] = t;
     else {
-        Tokens *nlex_tokens = realloc(_lexer.Tokens, _lexer.capacity * 2);
+        Token *nlex_tokens = realloc(_lexer.Tokens, _lexer.capacity * 2);
         if (!nlex_tokens) return 0;
         _lexer.capacity *= 2;
         _lexer.Tokens = nlex_tokens;
@@ -186,7 +188,7 @@ lexer_add_token(Token t)
     return 1;
 }
 
-void
+Lexer*
 lex(char *buf)
 {
     Token t;
@@ -203,13 +205,14 @@ lex(char *buf)
                 ;
         }
         else if (t.type == TOKEN_NEWLINE) _line++;
-        else if (t.type == TOKEN_UNKNWON)
+        else if (t.type == TOKEN_UNKNOWN)
             fprintf(stderr, "error: unknown character token %c\n", t.c);
 
         if (!lexer_add_token(t)) goto allocerr;
     }
     
     lexer_add_token(t);
+    return &_lexer;
 allocerr:
     fprintf(stderr, "fatal error: failed to allocate memory\nexiting now...\n");
     exit(EXIT_FAILURE);
