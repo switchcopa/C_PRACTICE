@@ -76,7 +76,8 @@ get_num(char **buf)
         t.type = TOKEN_INT;
         t.i = atoi(num);
     }
-
+    
+    TOKEN_SET_FLAG(t, TOKEN_FLAG_CONSTANT);
     return t;
 }
 
@@ -121,6 +122,8 @@ get_ident(char **buf)
     }
     
     t.type = keyword_search(t.ident, i);
+    if (t.type != TOKEN_IDENT)
+        TOKEN_SET_FLAG(t, TOKEN_FLAG_KEYWORD);
     *buf = p;
     return t;
 }
@@ -153,6 +156,7 @@ get_string(char **buf)
     }
     
     t.type = TOKEN_STRING;
+    TOKEN_SET_FLAG(t, TOKEN_FLAG_ALLOCATED | TOKEN_FLAG_CONSTANT);
     t.s = s;
     *buf = ++p;
     return t;
@@ -167,22 +171,27 @@ get_symbol(char **buf)
     {
         case '=':
             t.type = TOKEN_EQUAL;
+            TOKEN_SET_FLAG(t, TOKEN_FLAG_OPERATOR);
             break;
 
         case '+':
             t.type = TOKEN_PLUS;
+            TOKEN_SET_FLAG(t, TOKEN_FLAG_OPERATOR);
             break;
         
         case '-':
             t.type = TOKEN_MINUS;
+            TOKEN_SET_FLAG(t, TOKEN_FLAG_OPERATOR);
             break;
 
         case '*':
             t.type = TOKEN_STAR;
+            TOKEN_SET_FLAG(t, TOKEN_FLAG_OPERATOR);
             break;
 
         case '/':
             t.type = TOKEN_FSLASH;
+            TOKEN_SET_FLAG(t, TOKEN_FLAG_OPERATOR);
             break;
 
         case ')':
