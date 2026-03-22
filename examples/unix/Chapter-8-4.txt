@@ -1,0 +1,44 @@
+
+8.4 Random Access - Lseek
+
+Input and output are normally sequential: each read or write takes place at a position in the
+file right after the previous one. When necessary, however, a file can be read or written in any
+arbitrary order. The system call lseek provides a way to move around in a file without reading
+or writing any data:
+
+long lseek(int fd, long offset, int origin);
+
+sets the current position in the file whose descriptor is fd to offset, which is taken relative to
+the location specified by origin. Subsequent reading or writing will begin at that position.
+
+origin can be 0, 1, or 2 to specify that offset is to be measured from the beginning, from the
+current position, or from the end of the file respectively. For example, to append to a file (the
+redirection >> in the UNIX shell, or "a" for fopen), seek to the end before writing:
+
+lseek(fd, 0L, 2);
+
+To get back to the beginning (``rewind''),
+
+lseek(fd, 0L, 0);
+
+Notice the 0L argument; it could also be written as (long) 0 or just as 0 if lseek is properly
+declared.
+
+With lseek, it is possible to treat files more or less like arrays, at the price of slower access.
+For example, the following function reads any number of bytes from any arbitrary place in a
+file. It returns the number read, or -1 on error.
+
+#include "syscalls.h"
+
+/* get: read n bytes from position pos */
+int get(int fd, long pos, char *buf, int n)
+{
+    if (lseek(fd, pos, 0) >= 0)
+        return read(fd, buf, n);
+    else
+        return -1;
+}
+
+The return value from lseek is a long that gives the new position in the file, or -1 if an error
+occurs. The standard library function fseek is similar to lseek except that the first argument
+is a FILE * and the return is non-zero if an error occurred.
