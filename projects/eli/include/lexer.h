@@ -17,11 +17,14 @@
 #define UNEXPECTED_SYNTAX_ERROR(c, line) (fprintf(stderr, "Syntax Error: Unexpected %c at line %zu\n", c , line))
 #define valid_ident(c) (isalnum(c) || c == '_')
 
-#define BIT(n)         (1U << (n))
-#define FLAG_KEYWORD   (BIT(0))
-#define FLAG_OPERATOR  (BIT(1))
-#define FLAG_CONSTANT  (BIT(2))
-#define FLAG_ALLOCATED (BIT(3))
+#define BIT(n)                    (1U << (n))
+#define TOKEN_SET_FLAG(t, f)      ((t).flags |= (f))
+#define TOKEN_CLEAR_FLAG(t, f)    ((t).flags &= ~(f))
+#define TOKEN_HAS_FLAG(t, f)      ((t).flags & (f))
+#define TOKEN_FLAG_KEYWORD        (BIT(0))
+#define TOKEN_FLAG_OPERATOR       (BIT(1))
+#define TOKEN_FLAG_CONSTANT       (BIT(2))
+#define TOKEN_FLAG_ALLOCATED      (BIT(3))
 
 typedef struct token
 {

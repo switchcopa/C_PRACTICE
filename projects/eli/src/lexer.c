@@ -43,7 +43,8 @@ get_num(char **buf)
     {
         if (*p == '.') {
             if (isfloat) {
-                UNEXPECTED_SYNTAX_ERROR(*p, _line);
+                UNEXPECTED_SYNTAX_ERROR(*p++, _line);
+                *buf = p;
                 t.type = TOKEN_ERROR;
                 return t;
             } else
