@@ -65,4 +65,11 @@ negative, however, getc calls the function _fillbuf to replenish the buffer, re-
 structure contents, and return a character. The characters are returned unsigned, which
 ensures that all characters will be positive.
 
-Although 
+Although we will not discuss any details, we have included the definition of putc to show that
+it operates in much the same way as getc, calling a function _flushbuf when its buffer is full.
+We have also included macros for accessing the error and end-of-file status and the file
+descriptor.
+
+The function fopen can now be written. Most of fopen is concerned with getting the file
+opened and positioned at the right place, and setting the flag bits to indicate the proper state.
+fopen does not allocate any buffer space; this is done by _fillbuf when the file is first read.
