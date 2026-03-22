@@ -11,18 +11,16 @@
 #include <ctype.h>
 
 #define IDENTIFIER_SIZE 32
-#define MAX_TOKENS 5000
+#define MAX_TOKENS 5000U
 #define BUFSIZE 128
 
 #define UNEXPECTED_SYNTAX_ERROR(c, line) (fprintf(stderr, "Syntax Error: Unexpected %c at line %zu\n", c , line))
 #define valid_ident(c) (isalnum(c) || c == '_')
-#define lexer_add_token(l, t) (l->Tokens[l->ntokens++] = t)
-
-extern size_t line;
 
 typedef struct token
 {
-    enum {
+    enum
+    {
         TOKEN_IDENT,
         TOKEN_EQUAL,
         TOKEN_INT,
@@ -30,22 +28,24 @@ typedef struct token
         TOKEN_STRING,
         TOKEN_PLUS,
         TOKEN_MINUS,
-        TOKEN_MULT,
-        TOKEN_DIV,
+        TOKEN_STAR,
+        TOKEN_FSLASH,
         TOKEN_LPAREN,
         TOKEN_RPAREN,
         TOKEN_ERROR,
         TOKEN_ALLOCERR,
         TOKEN_SPACE,
         TOKEN_NEWLINE,
-        TOKEN_NULL
+        TOKEN_NULL,
+        TOKEN_UNKNOWN
     } type;
 
-    union {
+    union
+    {
         char ident[IDENTIFIER_SIZE];
         char *s;
-        int i;
         double d;
+        int i;
         char c;
     };
 } Token;
@@ -54,8 +54,11 @@ typedef struct lexer
 {
     Token *Tokens;
     size_t ntokens;
+    size_t capacity;
 } Lexer;
 
-Lexer *lexer_tokenize(char *ibuf);
+void lex(char *buf);
+extern Lexer _lexer;
+extern size_t _line;
 
 #endif
