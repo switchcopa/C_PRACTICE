@@ -33,9 +33,12 @@ int main(int argc, char **argv) {
     }
     buf[size] = '\0';
     
+    printf("%s:\n", argv[1]); 
     Lexer *lexer = lex(buf);
     for (size_t i = 0; i < lexer->ntokens; i++) {
         Token *t = &lexer->Tokens[i];
+        if (t->type == TOKEN_SPACE) continue;
+        else if (t->type == TOKEN_NEWLINE) { fprintf(stdout, "\n"); continue; }
         fprintf(stdout, "%s ", toktypes[(int)t->type]);
     }
     
