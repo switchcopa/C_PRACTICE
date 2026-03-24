@@ -6,39 +6,6 @@
 #include <string.h>
 #include <stdio.h>
 
-const char *toktypes[] =
-{
-    "TOKEN_IDENT",
-    "TOKEN_EQUAL",
-    "TOKEN_INT",
-    "TOKEN_DOUBLE",
-    "TOKEN_STRING",
-    "TOKEN_PLUS",
-    "TOKEN_MINUS",
-    "TOKEN_STAR",
-    "TOKEN_FSLASH",
-    "TOKEN_LPAREN",
-    "TOKEN_RPAREN",
-    "TOKEN_ERROR",
-    "TOKEN_ALLOCERR",
-    "TOKEN_SPACE",
-    "TOKEN_NEWLINE",
-    "TOKEN_NULL",
-    "TOKEN_UNKNOWN",
-    "TOKEN_ELSE",
-    "TOKEN_FOR",
-    "TOKEN_IF",
-    "TOKEN_WHILE"
-};
-
-const keyword keywords[] =
-{
-    { "else", TOKEN_ELSE },
-    { "for", TOKEN_FOR },
-    { "if", TOKEN_IF },
-    { "while", TOKEN_WHILE }
-};
-
 Lexer _lexer;
 size_t _line;
 
@@ -76,7 +43,7 @@ get_num(char **buf)
         t.type = TOKEN_INT;
         t.i = atoi(num);
     }
-    
+
     TOKEN_SET_FLAG(t, TOKEN_FLAG_CONSTANT);
     return t;
 }
@@ -149,8 +116,7 @@ get_string(char **buf)
     if (*p != '"') 
     {
         fprintf(stderr, "String too long at line %zu\n", _line);
-        free(s);
-        t.s = NULL;
+        t.s = s;
         t.type = TOKEN_ERROR;
         return t;
     }
@@ -283,3 +249,36 @@ allocerr:
     fprintf(stderr, "fatal error: failed to allocate memory\nexiting now...\n");
     exit(EXIT_FAILURE);
 }
+
+const char *toktypes[] =
+{
+    "TOKEN_IDENT",
+    "TOKEN_EQUAL",
+    "TOKEN_INT",
+    "TOKEN_DOUBLE",
+    "TOKEN_STRING",
+    "TOKEN_PLUS",
+    "TOKEN_MINUS",
+    "TOKEN_STAR",
+    "TOKEN_FSLASH",
+    "TOKEN_LPAREN",
+    "TOKEN_RPAREN",
+    "TOKEN_ERROR",
+    "TOKEN_ALLOCERR",
+    "TOKEN_SPACE",
+    "TOKEN_NEWLINE",
+    "TOKEN_NULL",
+    "TOKEN_UNKNOWN",
+    "TOKEN_ELSE",
+    "TOKEN_FOR",
+    "TOKEN_IF",
+    "TOKEN_WHILE"
+};
+
+const keyword keywords[] =
+{
+    { "else", TOKEN_ELSE },
+    { "for", TOKEN_FOR },
+    { "if", TOKEN_IF },
+    { "while", TOKEN_WHILE }
+};
