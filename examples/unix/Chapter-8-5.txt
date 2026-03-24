@@ -73,3 +73,97 @@ descriptor.
 The function fopen can now be written. Most of fopen is concerned with getting the file
 opened and positioned at the right place, and setting the flag bits to indicate the proper state.
 fopen does not allocate any buffer space; this is done by _fillbuf when the file is first read.
+
+#include <fcntl.h>
+#include "syscalls.h"
+#define PERMS 0666 /* RW for owner, group, others */
+
+FILE *fopen(char *name, char *mode)
+{
+    int fd;
+    FILE *fp;
+
+    if (*mode != 'r' && *mode != 'w' && *mode != 'a')
+        return NULL;
+    for (fp = _iob; fp < _iob + OPEN_MAX; fp++)
+        if ((fp->flag & (_READ | _WRITE)) == 0)
+            break; /* found free slot */
+    if (fp >= _iob + OPEN_MAX) /* no free slots */
+        return NULL;
+    
+    if (*mode == 'w')
+        fd = creat(name, PERMS);
+    else if (*mode == 'a') {
+        if ((fd = open(name, O_WRONLY, 0)) == -1)
+            fd = creat(name, PERMS);
+        lseek(fd, 0L, 2);
+    } else
+        fd = open(name, O_RDONLY, 0);
+    if (fd == -1)  /* couldn't access name */
+        return NULL;
+    fp->fd = fd;
+    fd->cnt = 0;
+    fd->base = NULL;
+    fd->flag = (*mode == 'r') ? _READ : _WRITE;
+    return fp;
+}
+
+This version of fopen does not handle all of the access mode possibilities of the standard,
+though adding them would not take much code. In particular, our fopen does not recognize
+the "b" that signals binary access, since that meaningless of UNIX systems, nor the "+" that
+permits both reading and writing.
+
+The first call to getc for a particular file finds a count of zero, which forces a call of
+_fillbuf. If _fillbuf finds that file is not open for reading, it returns EOF immediately.
+Otherwise, it tries to allocate a buffer (if reading is to be buffered).
+
+Once the buffer is established, _fillbuf calls read to fill it, sets the count and pointers, and
+returns the character at the beginning of the buffer. Subsequent calls to _fillbuf will find a
+buffer allocated.
+
+#include "syscalls.h"
+/* _fillbuf: allocate and fill input buffer */
+int _fillbuf(FILE *fp)
+{
+    int bufsize;
+    if ((fp->flag & (_READ | _EOF_ERR)) != _READ)
+        return EOF;
+    bufsize = (fp->flag & _UNBUF) ? 1 : BUFSIZ;
+    if (fp->base == NULL) /* no buffer yet */
+        if ((fp->base = (char *) malloc(bufsize)) == NULL)
+            return EOF; /* can't get buffer */
+    fp->ptr = fp->base;
+    fp->cnt = read(fp->fd, fp->ptr, bufsize);
+    if (--fp->cnt < 0) {
+        if (fp->cnt == -1)
+            fp->flag |= _EOF;
+        else
+            fp->flag |= _ERR;
+        fp->cnt = 0;
+        return EOF;
+    }
+
+    return (unsigned char) *fp->ptr++;
+}
+
+FILE _iob[OPEN_MAX] = { /* stdin, stdout, stderr */
+    { 0, (char *) 0, (char *) 0, _READ, 0 },
+    { 0, (char *) 0, (char *) 0, _WRITE, 1 },
+    { 0, (char *) 0, (char *) 0, _WRITE | _UNBUF, 2 }
+};
+
+The initialization of the flag part of the structure shows that stdin is to be read, stdout is to
+be written, and stderr is to be written unbuffered.
+
+Exercise 8-2. Rewrite fopen and _fillbuf with fields instead of explicit bit operations.
+Compare code size and execution speed.
+
+Exercise 8-3. Design and write _flushbuf, fflush, and fclose.
+
+Exercise 8-4. The standard library function
+
+int fseek(FILE *fp, long offset, int origin)
+
+is identical to lseek except that fp is a file pointer instead of a file descriptor and return value
+is an int status, not a position. Write fseek. Make sure that your fseek coordinates properly
+with the buffering done for the other functions of the library.
