@@ -163,9 +163,13 @@ get_symbol(char **buf)
         case ')':
             t.type = TOKEN_RPAREN;
             break;
-        
+
         case '(':
             t.type = TOKEN_LPAREN;
+            break;
+
+        case ';':
+            t.type = TOKEN_SEMICOLON;
             break;
 
         case ' ':
@@ -187,7 +191,7 @@ get_symbol(char **buf)
             t.type = TOKEN_UNKNOWN;
             break;
     }
-    
+
     t.c = *p++;
     *buf = p;
     return t;
@@ -242,7 +246,7 @@ lex(char *buf)
 
         if (!lexer_add_token(t)) goto allocerr;
     }
-    
+
     lexer_add_token(t);
     return &_lexer;
 allocerr:
@@ -265,6 +269,7 @@ const char *toktypes[] =
     "TOKEN_RPAREN",
     "TOKEN_ERROR",
     "TOKEN_ALLOCERR",
+    "TOKEN_SEMICOLON",
     "TOKEN_SPACE",
     "TOKEN_NEWLINE",
     "TOKEN_NULL",

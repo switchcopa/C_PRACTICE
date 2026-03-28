@@ -17,7 +17,10 @@ typedef enum
     NODE_NUMBER_DOUBLE,
     NODE_NUMBER_INT,
     NODE_BINARY,
-    NODE_UNARY
+    NODE_UNARY,
+    NODE_IDENT,
+    NODE_ASSIGNMENT,
+    NOTE_STATEMENT_LIST
 } node_type;
 
 typedef struct
@@ -50,11 +53,31 @@ typedef struct astnode
             struct astnode *left;
             Token t;
         } binary;
+
+        struct
+        {
+            char *name;
+        } ident;
+
+        struct
+        {
+            char *name;
+            struct astnode *value;
+        } assign;
+
+        struct
+        {
+            astnode **stmts;
+            size_t nstmt;
+        } stmt_list;
     };
     node_type type;
 } astnode;
 
 astnode *parse_primary(Parser *p);
 astnode *parse_expression(Parser *, float); // the float is the binding power of each token
+astnode *parse_statement(Parser *);
+astnode *parse_assignment(Parser *);
+astnode *parse_program(Parser *);
 
 #endif
