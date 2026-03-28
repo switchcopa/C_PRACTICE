@@ -12,19 +12,6 @@ allocfail(void)
     exit(EXIT_FAILURE);
 }
 
-static inline void
-expect(Parser *p, char c)
-{
-    fprintf(stderr, "Syntax Error: Expected '%c' at line %zu\n", c, p->line);
-    Token t;
-    while ((t = advance(p)).type != TOKEN_SEMICOLON && t.type != TOKEN_NULL)
-        ;
-    if (t.type == TOKEN_NULL)
-        exit(EXIT_FAILURE);
-    else if (t.type == TOKEN_SEMICOLON)
-        advance(p); // consume it
-}
-
 static inline astnode *
 make_binary(astnode *left, Token op, astnode *right)
 {
@@ -76,6 +63,36 @@ match(Parser *p, toktype tp)
     return (peek(p).type == tp);
 }
 
+static inline void
+expect(Parser *p, char c)
+{
+    fprintf(stderr, "Syntax Error: Expected '%c' at line %zu\n", c, p->line);
+    Token t;
+    while ((t = advance(p)).type != TOKEN_SEMICOLON && t.type != TOKEN_NULL)
+        ;
+    if (t.type == TOKEN_NULL)
+        exit(EXIT_FAILURE);
+    else if (t.type == TOKEN_SEMICOLON)
+        advance(p); // consume it
+}
+
+Parser *
+make_parser(char *buf)
+{
+    Parser *p = malloc(sizeof(Parser));
+    Lexer  *l = lex(buf);
+    if (!p || !l) allocfail();
+
+    p->tokens = l->Tokens;
+    p->ntokens = l->ntokens;
+    p->capacity = l->capacity;
+    p->pos = 0U;
+    p->line = 1U;
+    p->err = 0;
+
+    return p;
+}
+
 astnode *
 parse_primary(Parser *p)
 {
@@ -86,8 +103,7 @@ parse_primary(Parser *p)
     switch (t.type)
     {
         case TOKEN_IDENT:
-            np->type = NODE_IDENT;
-            np->ident = t.ident;
+            np->type = NODE_IDENT; np->ident.name = t.ident;
             break;
 
         case TOKEN_INT:
@@ -103,9 +119,12 @@ parse_primary(Parser *p)
         case TOKEN_LPAREN:
             free(np);
             np = parse_expression(p, 0.0);
-            if (!match(TOKEN_RPAREN)) { expect(p, ')', p->line); return NULL; }
+            if (!match(p, TOKEN_RPAREN))
+            {
+                expect(p, ')');
+                return NULL;
+            }
             break;
-
         default:
             UNEXPECTED_SYNTAX_ERROR(t.c, p->line);
             return NULL;
@@ -139,7 +158,6 @@ parse_expression(Parser *p, float minbp)
 astnode *
 parse_assignment(Parser *p)
 {
-    astnode *stmt;
     Token ident = advance(p);
     Token eq = advance(p);
 
@@ -152,8 +170,8 @@ parse_assignment(Parser *p)
         expect(p, ';');
 
     astnode *np = malloc(sizeof(astnode));
-    if (!np) allocfail();
 
+    if (!np) allocfail();
     np->type = NODE_ASSIGNMENT;
     np->assign.name = ident.ident;
     np->assign.value = rhs;

@@ -67,13 +67,14 @@ typedef struct astnode
 
         struct
         {
-            astnode **stmts;
+            struct astnode **stmts;
             size_t nstmt;
         } stmt_list;
     };
     node_type type;
 } astnode;
 
+Parser *make_parser(char *);
 astnode *parse_primary(Parser *p);
 astnode *parse_expression(Parser *, float); // the float is the binding power of each token
 astnode *parse_statement(Parser *);

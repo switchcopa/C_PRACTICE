@@ -1,4 +1,1 @@
-
-if x == 5
-else y = 4 + 5*(1/32)
-for identifier = 0
+x = 5 + 4 * y;

@@ -9,6 +9,40 @@
 Lexer _lexer;
 size_t _line;
 
+const char *toktypes[] =
+{
+    "TOKEN_IDENT",
+    "TOKEN_EQUAL",
+    "TOKEN_INT",
+    "TOKEN_DOUBLE",
+    "TOKEN_STRING",
+    "TOKEN_PLUS",
+    "TOKEN_MINUS",
+    "TOKEN_STAR",
+    "TOKEN_FSLASH",
+    "TOKEN_LPAREN",
+    "TOKEN_RPAREN",
+    "TOKEN_ERROR",
+    "TOKEN_ALLOCERR",
+    "TOKEN_SEMICOLON",
+    "TOKEN_SPACE",
+    "TOKEN_NEWLINE",
+    "TOKEN_NULL",
+    "TOKEN_UNKNOWN",
+    "TOKEN_ELSE",
+    "TOKEN_FOR",
+    "TOKEN_IF",
+    "TOKEN_WHILE"
+};
+
+const keyword keywords[] =
+{
+    { "else", TOKEN_ELSE },
+    { "for", TOKEN_FOR },
+    { "if", TOKEN_IF },
+    { "while", TOKEN_WHILE }
+};
+
 static Token
 get_num(char **buf)
 {
@@ -233,6 +267,7 @@ lex(char *buf)
 
     while ((t = next_token(&buf)).type != TOKEN_NULL)
     {
+        if (t.type == TOKEN_SPACE) continue;
         if (t.type == TOKEN_ALLOCERR) goto allocerr;
         else if (t.type == TOKEN_ERROR) // skip all tokens until a safe point
         {
@@ -253,37 +288,3 @@ allocerr:
     fprintf(stderr, "fatal error: failed to allocate memory\nexiting now...\n");
     exit(EXIT_FAILURE);
 }
-
-const char *toktypes[] =
-{
-    "TOKEN_IDENT",
-    "TOKEN_EQUAL",
-    "TOKEN_INT",
-    "TOKEN_DOUBLE",
-    "TOKEN_STRING",
-    "TOKEN_PLUS",
-    "TOKEN_MINUS",
-    "TOKEN_STAR",
-    "TOKEN_FSLASH",
-    "TOKEN_LPAREN",
-    "TOKEN_RPAREN",
-    "TOKEN_ERROR",
-    "TOKEN_ALLOCERR",
-    "TOKEN_SEMICOLON",
-    "TOKEN_SPACE",
-    "TOKEN_NEWLINE",
-    "TOKEN_NULL",
-    "TOKEN_UNKNOWN",
-    "TOKEN_ELSE",
-    "TOKEN_FOR",
-    "TOKEN_IF",
-    "TOKEN_WHILE"
-};
-
-const keyword keywords[] =
-{
-    { "else", TOKEN_ELSE },
-    { "for", TOKEN_FOR },
-    { "if", TOKEN_IF },
-    { "while", TOKEN_WHILE }
-};
