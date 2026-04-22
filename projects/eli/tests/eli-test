@@ -1,4 +1,4 @@
 
-ident = 5 + 4 * x;
+ident = ;
 stream = true;
-if statement = stream;
+statement = ;

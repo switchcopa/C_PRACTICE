@@ -4,6 +4,7 @@
 #include "parser.h"
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 static inline void
 allocfail(void)
@@ -12,12 +13,21 @@ allocfail(void)
     exit(EXIT_FAILURE);
 }
 
+static inline char *
+strdup(char *s)
+{
+    char *p = malloc(strlen(s) + 1);
+    if (!p) allocfail();
+    strcpy(p, s);
+    return p;
+}
+
 static inline astnode *
 make_binary(astnode *left, Token op, astnode *right)
 {
     astnode *np = malloc(sizeof(astnode));
     if (!np) allocfail();
-    np->type = NODE_BINARY
+    np->type = NODE_BINARY;
     np->binary.right = right;
     np->binary.left = left;
     np->binary.t = op;
@@ -43,16 +53,22 @@ get_precedence(toktype tp)
 static inline Token
 advance(Parser *p)
 {
-    Token t = p->tokens[p->pos++];
-    if (t.type == TOKEN_NEWLINE)
-        p->line++;
-    return t;
+    return p->tokens[p->pos++];
 }
 
 static inline Token
 peek(Parser *p)
 {
     return p->tokens[p->pos];
+}
+
+static inline void
+recover(Parser *p)
+{
+    while (peek(p).type != TOKEN_SEMICOLON && peek(p).type != TOKEN_NULL)
+        advance(p);
+    if (peek(p).type == TOKEN_SEMICOLON)
+        advance(p);
 }
 
 static inline Token
@@ -67,29 +83,43 @@ match(Parser *p, toktype tp)
     return (peek(p).type == tp);
 }
 
-static inline void
-expect(Parser *p, char c)
+static inline const char *
+toktostr(toktype tp)
 {
-    fprintf(stderr, "Syntax Error: Expected '%c' at line %zu\n", c, p->line);
+    switch (tp)
+    {
+    case TOKEN_IDENT: return "identifier";
+    case TOKEN_INT: return "integer";
+    case TOKEN_DOUBLE: return "double";
+    case TOKEN_STRING: return "string";
+
+    case TOKEN_EQUAL: return "=";
+    case TOKEN_PLUS: return "+";
+    case TOKEN_MINUS: return "-";
+    case TOKEN_STAR: return "*";
+    case TOKEN_FSLASH: return "/";
+    case TOKEN_LPAREN: return "(";
+    case TOKEN_RPAREN: return ")";
+    case TOKEN_SEMICOLON: return ";";
+
+    default: return "unknown";
+    }
+}
+
+static inline void
+expect(Parser *p, toktype t)
+{
+    fprintf(stderr, "Syntax Error: Expected '%s' at line %zu\n", toktostr(t), p->line);
     p->err = 1;
     recover(p);
 }
 
 static inline void
-unexpected(Parser *p, char c)
+unexpected(Parser *p, Token t)
 {
-    fprintf(stderr, "Syntax Error: Unexpected '%c' at line %zu\n", c, p->line);
+    fprintf(stderr, "Syntax Error: Unexpected '%s' at line %zu\n", toktostr(t.type), p->line);
     p->err = 1;
     recover(p);
-}
-
-static inline void
-recover(Parser *p)
-{
-    while (peek(p).type != TOKEN_SEMICOLON && peek(p).type != TOKEN_NULL)
-        advance(p);
-    if (peek(p).type == TOKEN_SEMICOLON)
-        advance(p);
 }
 
 static inline astnode *
@@ -110,25 +140,6 @@ make_err(void)
     if (!np) allocfail();
     np->type = NODE_ERROR;
     return np;
-}
-
-static inline const char *
-toktostr(Token t)
-{
-    switch (t.type)
-    {
-    case TOKEN_IDENT: return "identifier";
-    case TOKEN_INT: return "integer";
-    case TOKEN_DOUBLE: return "double";
-    case TOKEN_STRING: return "string";
-
-    case TOKEN_EQUAL: case TOKEN_PLUS: case TOKEN_MINUS:
-    case TOKEN_STAR: case TOKEN_FSLASH: case TOKEN_LPAREN:
-    case TOKEN_RPAREN:
-        return (char *)t.c;
-    default:
-        return "idk";
-    }
 }
 
 Parser *
@@ -159,7 +170,7 @@ parse_primary(Parser *p)
             np = malloc(sizeof(astnode));
             if (!np) allocfail();
 
-            np->type = NODE_IDENT; np->ident.name = t.ident;
+            np->type = NODE_IDENT; np->ident.name = strdup(t.ident);
             break;
 
         case TOKEN_INT:
@@ -182,13 +193,13 @@ parse_primary(Parser *p)
             np = parse_expression(p, 0.0);
             if (!match(p, TOKEN_RPAREN))
             {
-                expect(p, ')');
+                expect(p, TOKEN_RPAREN);
                 return make_err();
             }
             advance(p);
             break;
         default:
-            unexpected(p, t.c);
+            unexpected(p, t);
             return make_err();
     }
 
@@ -205,7 +216,7 @@ parse_expression(Parser *p, float minbp)
     {
         Token op = peek(p);
         float bp = get_precedence(op.type);
-        if (bp < minbp) break;
+        if (bp == 0.0 || bp < minbp) break;
 
         advance(p);
         right = parse_expression(p, bp + 0.1);
@@ -219,14 +230,15 @@ astnode *
 parse_assignment(Parser *p)
 {
     Token ident = advance(p);
+    if (ident.type != TOKEN_IDENT) { unexpected(p, ident); return make_err(); }
     Token eq = advance(p);
-
     if (eq.type != TOKEN_EQUAL)
-        expect(p, '=');
+        expect(p, TOKEN_EQUAL);
+
     astnode *rhs = parse_expression(p, 0.0);
 
     Token sc = advance(p);
     if (sc.type != TOKEN_SEMICOLON)
-        expect(p, ';');
+        expect(p, TOKEN_SEMICOLON);
     return make_assignment(ident.ident, rhs);
 }

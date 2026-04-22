@@ -77,7 +77,8 @@ get_num(char **buf)
         t.type = TOKEN_INT;
         t.i = atoi(num);
     }
-
+    
+    t.line = _line;
     TOKEN_SET_FLAG(t, TOKEN_FLAG_CONSTANT);
     return t;
 }
@@ -126,6 +127,7 @@ get_ident(char **buf)
     if (t.type != TOKEN_IDENT)
         TOKEN_SET_FLAG(t, TOKEN_FLAG_KEYWORD);
     *buf = p;
+    t.line = _line;
     return t;
 }
 
@@ -159,6 +161,7 @@ get_string(char **buf)
     TOKEN_SET_FLAG(t, TOKEN_FLAG_ALLOCATED | TOKEN_FLAG_CONSTANT);
     t.s = s;
     *buf = ++p;
+    t.line = _line;
     return t;
 }
 
@@ -227,6 +230,7 @@ get_symbol(char **buf)
     }
 
     t.c = *p++;
+    t.line = _line;
     *buf = p;
     return t;
 }
@@ -272,7 +276,7 @@ lex(char *buf)
         if (t.type == TOKEN_ALLOCERR) goto allocerr;
         else if (t.type == TOKEN_ERROR) // skip all tokens until a safe point
             _lexer.err = 1;
-        else if (t.type == TOKEN_NEWLINE) _line++;
+        else if (t.type == TOKEN_NEWLINE) { _line++; continue; }
         else if (t.type == TOKEN_UNKNOWN)
             fprintf(stderr, "error: unknown character token %c\n", t.c);
 

@@ -64,6 +64,7 @@ typedef struct token
         char c;
     };
 
+    size_t line;
     unsigned char flags;
 } Token;
 
