@@ -107,9 +107,10 @@ toktostr(toktype tp)
 }
 
 static inline void
-expect(Parser *p, toktype t)
+expect(Parser *p, toktype tp)
 {
-    fprintf(stderr, "Syntax Error: Expected '%s' at line %zu\n", toktostr(t), p->line);
+    Token t = peek(p);
+    fprintf(stderr, "Syntax Error: Expected '%s' at line %zu\n", toktostr(tp), t.line);
     p->err = 1;
     recover(p);
 }
@@ -117,7 +118,7 @@ expect(Parser *p, toktype t)
 static inline void
 unexpected(Parser *p, Token t)
 {
-    fprintf(stderr, "Syntax Error: Unexpected '%s' at line %zu\n", toktostr(t.type), p->line);
+    fprintf(stderr, "Syntax Error: Unexpected '%s' at line %zu\n", toktostr(t.type), t.line);
     p->err = 1;
     recover(p);
 }
@@ -153,7 +154,6 @@ make_parser(char *buf)
     p->ntokens = l->ntokens;
     p->capacity = l->capacity;
     p->pos = 0U;
-    p->line = 1U;
     p->err = 0;
 
     return p;

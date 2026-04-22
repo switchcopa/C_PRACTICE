@@ -30,7 +30,6 @@ typedef struct
     size_t ntokens;
     size_t capacity;
     size_t pos;
-    size_t line;
     int err;
 } Parser;
 

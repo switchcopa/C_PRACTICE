@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 Lexer _lexer;
-size_t _line;
+size_t _line = 1;
 
 const char *toktypes[] =
 {
@@ -272,11 +272,11 @@ lex(char *buf)
     while ((t = next_token(&buf)).type != TOKEN_NULL)
     {
         // skip space token
-        if (t.type == TOKEN_SPACE) continue;
-        if (t.type == TOKEN_ALLOCERR) goto allocerr;
+        if (t.type == TOKEN_NEWLINE) { _line++; continue; }
+        else if (t.type == TOKEN_SPACE) continue;
+        else if (t.type == TOKEN_ALLOCERR) goto allocerr;
         else if (t.type == TOKEN_ERROR) // skip all tokens until a safe point
             _lexer.err = 1;
-        else if (t.type == TOKEN_NEWLINE) { _line++; continue; }
         else if (t.type == TOKEN_UNKNOWN)
             fprintf(stderr, "error: unknown character token %c\n", t.c);
 
