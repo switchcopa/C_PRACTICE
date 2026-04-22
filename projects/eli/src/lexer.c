@@ -267,12 +267,13 @@ lex(char *buf)
 
     while ((t = next_token(&buf)).type != TOKEN_NULL)
     {
+        // skip space token
         if (t.type == TOKEN_SPACE) continue;
         if (t.type == TOKEN_ALLOCERR) goto allocerr;
         else if (t.type == TOKEN_ERROR) // skip all tokens until a safe point
         {
             lexer_add_token(t);
-            while ((t = next_token(&buf)).type != TOKEN_NEWLINE)
+            while ((t = next_token(&buf)).type != TOKEN_SEMICOLON)
                 ;
         }
         else if (t.type == TOKEN_NEWLINE) _line++;
