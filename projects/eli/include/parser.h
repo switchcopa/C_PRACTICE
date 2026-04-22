@@ -20,7 +20,8 @@ typedef enum
     NODE_UNARY,
     NODE_IDENT,
     NODE_ASSIGNMENT,
-    NOTE_STATEMENT_LIST
+    NOTE_STATEMENT_LIST,
+    NODE_ERROR
 } node_type;
 
 typedef struct
@@ -39,7 +40,7 @@ typedef struct astnode
     {
         double d;
         int i;
-
+        
         struct
         {
             struct astnode *right;

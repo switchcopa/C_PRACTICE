@@ -271,11 +271,7 @@ lex(char *buf)
         if (t.type == TOKEN_SPACE) continue;
         if (t.type == TOKEN_ALLOCERR) goto allocerr;
         else if (t.type == TOKEN_ERROR) // skip all tokens until a safe point
-        {
-            lexer_add_token(t);
-            while ((t = next_token(&buf)).type != TOKEN_SEMICOLON)
-                ;
-        }
+            _lexer.err = 1;
         else if (t.type == TOKEN_NEWLINE) _line++;
         else if (t.type == TOKEN_UNKNOWN)
             fprintf(stderr, "error: unknown character token %c\n", t.c);

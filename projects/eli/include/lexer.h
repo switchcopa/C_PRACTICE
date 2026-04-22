@@ -72,6 +72,7 @@ typedef struct lexer
     Token *Tokens;
     size_t ntokens;
     size_t capacity;
+    int err;
 } Lexer;
 
 typedef struct

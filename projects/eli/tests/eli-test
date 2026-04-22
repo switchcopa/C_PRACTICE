@@ -1,1 +1,4 @@
-x = 5 + 4 * y;
+
+ident = 5 + 4 * x;
+stream = true;
+if statement = stream;
