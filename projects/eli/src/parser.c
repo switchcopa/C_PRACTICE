@@ -59,6 +59,11 @@ advance(Parser *p)
 static inline Token
 peek(Parser *p)
 {
+    if (p->pos >= p->ntokens)
+    {
+        Token eof = { .type = TOKEN_NULL };
+        return eof;
+    }
     return p->tokens[p->pos];
 }
 
@@ -230,7 +235,7 @@ astnode *
 parse_assignment(Parser *p)
 {
     Token ident = advance(p);
-    if (ident.type != TOKEN_IDENT) { unexpected(p, ident); return make_err(); }
+    if (ident.type != TOKEN_IDENT) { unexpected(p, ident); recover(p); return make_err(); }
     Token eq = advance(p);
     if (eq.type != TOKEN_EQUAL)
         expect(p, TOKEN_EQUAL);

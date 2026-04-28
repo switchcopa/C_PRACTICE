@@ -146,12 +146,13 @@ get_string(char **buf)
 
     int i;
     for (i = 0; *p != '"' && i < BUFSIZE - 1; i++)
-        s[i] = *p;
+        s[i] = *p++;
     s[i] = '\0';
 
     if (*p != '"') 
     {
         fprintf(stderr, "String too long at line %zu\n", _line);
+        s[i] = '\0';
         t.s = s;
         t.type = TOKEN_ERROR;
         return t;
@@ -252,7 +253,7 @@ lexer_add_token(Token t)
     if (_lexer.ntokens < _lexer.capacity)
         _lexer.Tokens[_lexer.ntokens++] = t;
     else {
-        Token *nlex_tokens = realloc(_lexer.Tokens, _lexer.capacity * 2);
+        Token *nlex_tokens = realloc(_lexer.Tokens, sizeof(Token) * _lexer.capacity * 2);
         if (!nlex_tokens) return 0;
         _lexer.capacity *= 2;
         _lexer.Tokens = nlex_tokens;

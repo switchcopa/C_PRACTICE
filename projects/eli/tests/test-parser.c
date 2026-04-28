@@ -102,11 +102,6 @@ main(int argc, char **argv)
            p->tokens[p->pos].type != TOKEN_NULL)
     {
         astnode *stmt = parse_assignment(p);
-        if (p->err) {
-            printf("parsing failed\n");
-            break;
-        }
-        
         print_ast(stmt, 0);
         printf("\n");
     }
