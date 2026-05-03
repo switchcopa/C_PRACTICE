@@ -140,11 +140,22 @@ make_assignment(char *ident, astnode *val)
 }
 
 static inline astnode *
-make_err(void)
+make_node(node_type nt)
 {
     astnode *np = malloc(sizeof(astnode));
     if (!np) allocfail();
-    np->type = NODE_ERROR;
+    np->type = nt;
+    return np;
+}
+
+static inline astnode *
+make_stmt_list(void)
+{
+    astnode *np = make_node(NODE_STMT_LIST);
+    np->stmt_list.stmts = malloc(sizeof(astnode *) * STMT_LIST_SIZE);
+    if (!np->stmt_list.stmts) allocfail();
+    np->stmt_list.nstmt = 0U;
+    np->stmt_list.capacity = STMT_LIST_SIZE;
     return np;
 }
 
@@ -199,13 +210,13 @@ parse_primary(Parser *p)
             if (!match(p, TOKEN_RPAREN))
             {
                 expect(p, TOKEN_RPAREN);
-                return make_err();
+                return make_node(NODE_ERROR);
             }
             advance(p);
             break;
         default:
             unexpected(p, t);
-            return make_err();
+            return make_node(NODE_ERROR);
     }
 
     return np;
@@ -235,7 +246,7 @@ astnode *
 parse_assignment(Parser *p)
 {
     Token ident = advance(p);
-    if (ident.type != TOKEN_IDENT) { unexpected(p, ident); recover(p); return make_err(); }
+    if (ident.type != TOKEN_IDENT) { unexpected(p, ident); recover(p); return make_node(NODE_ERROR); }
     Token eq = advance(p);
     if (eq.type != TOKEN_EQUAL)
         expect(p, TOKEN_EQUAL);
@@ -246,4 +257,45 @@ parse_assignment(Parser *p)
     if (sc.type != TOKEN_SEMICOLON)
         expect(p, TOKEN_SEMICOLON);
     return make_assignment(ident.ident, rhs);
+}
+
+astnode *
+parse_statement(Parser *p)
+{
+    if (match(p, TOKEN_IDENT))
+        return parse_assignment(p);
+    else if (match(p, TOKEN_LBRACE))
+        return parse_block(p);
+    else
+    {
+        unexpected(p, peek(p));
+        return make_node(NODE_ERROR);
+    }
+}
+
+astnode *
+parse_stmt_list(Parser *p)
+{
+    astnode *list = make_stmt_list();
+
+    while (peek(p).type != TOKEN_NULL &&
+            peek(p).type != TOKEN_RBRACE)
+    {
+        astnode *stmt = parse_statement(p);
+
+        if (stmt->type != NODE_ERROR)
+            list->stmt_list.stmts[list->stmt_list.nstmt++] = stmt;
+        // maybe realloc stmt_list.stmts later when more statements are present
+    }
+
+    return list;
+}
+
+astnode *
+parse_block(Parser *p)
+{
+    advance(p); // consume '{'
+    astnode *list = parse_stmt_list(p);
+    if (!match(p, TOKEN_RBRACE))
+
 }

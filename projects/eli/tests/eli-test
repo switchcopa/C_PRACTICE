@@ -1,5 +1,3 @@
 
 
-ident = haven * 35 + (4 - STREAM);
-stream = true;
-statement = я не люблю этот сука;
+ident = haven * 35 + (4 - STREAM); STREAM = true;

@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#define EXPECTED_ERROR(c, l) (fprintf(stderr, "Syntax Error: Expected '%c' at line %zu\n", c, l))
+#define STMT_LIST_SIZE 1000U
 
 typedef enum
 {
@@ -20,7 +20,9 @@ typedef enum
     NODE_UNARY,
     NODE_IDENT,
     NODE_ASSIGNMENT,
-    NOTE_STATEMENT_LIST,
+    NODE_STMT_LIST,
+    NODE_BLOCK,
+    NODE_EOF,
     NODE_ERROR
 } node_type;
 
@@ -69,7 +71,13 @@ typedef struct astnode
         {
             struct astnode **stmts;
             size_t nstmt;
+            size_t capacity;
         } stmt_list;
+
+        struct
+        {
+            struct astnode *stmts;
+        } block;
     };
     node_type type;
 } astnode;
@@ -78,6 +86,8 @@ Parser *make_parser(char *);
 astnode *parse_primary(Parser *p);
 astnode *parse_expression(Parser *, float); // the float is the binding power of each token
 astnode *parse_statement(Parser *);
+astnode *parse_stmt_list(Parser *);
+astnode *parse_block(Parser *);
 astnode *parse_assignment(Parser *);
 astnode *parse_program(Parser *);
 

@@ -20,6 +20,8 @@ const char *toktypes[] =
     "TOKEN_MINUS",
     "TOKEN_STAR",
     "TOKEN_FSLASH",
+    "TOKEN_LBRACE",
+    "TOKEN_RBRACE",
     "TOKEN_LPAREN",
     "TOKEN_RPAREN",
     "TOKEN_ERROR",
@@ -208,6 +210,12 @@ get_symbol(char **buf)
 
         case ';':
             t.type = TOKEN_SEMICOLON;
+            break;
+        case '{':
+            t.type = TOKEN_LBRACE;
+            break;
+        case '}':
+            t.type = TOKEN_RBRACE;
             break;
 
         case ' ':
