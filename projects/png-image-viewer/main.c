@@ -10,6 +10,7 @@
 
 typedef uint32_t U32;
 typedef uint8_t U8;
+typedef int32_t I32;
 
 typedef struct
 {
@@ -18,9 +19,10 @@ typedef struct
     U8 *pixels;
 } Image;
 
-void    sdl_context_init(SDL_Window **window, SDL_Renderer **renderer);
+void    sdl_context_init(SDL_Window **window, SDL_Renderer **renderer, U32 width, U32 height);
 void    sdl_exit(SDL_Window *window, SDL_Renderer *renderer);
 Image   load_image(const char *path); 
+void    draw_image(SDL_Renderer *renderer, Image *img);
 void    free_image(Image *img);
 
 // helper functions
@@ -31,28 +33,46 @@ int
 main(int argc, char **argv)
 {
     if (argc != 2) { fprintf(stderr, "usage.\n"); exit(EXIT_FAILURE); }
-
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    sdl_context_init(&window, &renderer);
-   
-    sdl_exit(window, renderer);
-}
-
-void
-sdl_context_init(SDL_Window **window, SDL_Renderer **renderer)
-{
     int flags = IMG_INIT_PNG | IMG_INIT_JPG;
     if (SDL_Init(SDL_INIT_VIDEO) == -1)
         exit(EXIT_FAILURE);
     if ((IMG_Init(flags) & flags) != flags)
         exit(EXIT_FAILURE);
-    
+
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+
+    Image img = load_image(argv[1]);
+    sdl_context_init(&window, &renderer, img.width, img.height);
+    if (!img.pixels) { fprintf(stderr, "failed to laod image\n"); 
+        sdl_exit(window, renderer); }
+
+    bool running = true;
+    SDL_Event e;
+    while (running)
+    {
+        while (SDL_PollEvent(&e))
+            if (e.type == SDL_QUIT)
+                running = false;
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+        draw_image(renderer, &img);
+        SDL_RenderPresent(renderer);
+    }
+
+    free_image(&img);
+    sdl_exit(window, renderer);
+}
+
+void
+sdl_context_init(SDL_Window **window, SDL_Renderer **renderer, U32 width, U32 height)
+{
     *window = SDL_CreateWindow(
         "SDL2 Image Viewer",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        800, 600,
+        width, height,
         SDL_WINDOW_SHOWN
     );
 
@@ -124,6 +144,24 @@ load_image(const char *path)
 
     SDL_FreeSurface(converted);
     return img;
+}
+
+void
+draw_image(SDL_Renderer *renderer, Image *img)
+{
+    for (I32 y = 0; y < img->height; y++)
+        for (I32 x = 0; x < img->width; x++)
+        {
+            I32 i = (y * img->width + x) * 4;
+
+            I32 r = img->pixels[i + 0];
+            I32 g = img->pixels[i + 1];
+            I32 b = img->pixels[i + 2];
+            I32 a = img->pixels[i + 3];
+            
+            SDL_SetRenderDrawColor(renderer, r, g, b, a);    
+            SDL_RenderDrawPoint(renderer, x, y);
+        }
 }
 
 void
