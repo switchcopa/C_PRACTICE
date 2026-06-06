@@ -12,7 +12,7 @@ double f(double x);
 double integral(double (*f)(double), double a, double b);
 
 int main(void) {
-	double res = integral(&f, -100, 100) - sqrt(PI); // gaussian integral
+	double res = integral(&f, 0, 1);
 	if (fabs(res) <= EPS)
 		printf("0\n");
 	else
@@ -22,7 +22,7 @@ int main(void) {
 }
 
 double f(double x) {
-	return exp(-pow(x, 2));
+	return exp(pow(x, 2));
 }
 
 double integral(double (*f)(double), double a, double b) {
