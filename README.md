@@ -1,48 +1,49 @@
-# 📚 C_PRACTICE – My Journey to Mastering C
+# computer-systems
 
-Welcome to my **C_PRACTICE** repository!  
-This is where I document my progress, challenges, and breakthroughs while learning and mastering the **C programming language**.  
-From simple exercises to complex projects, everything here represents my growth as a programmer.
+A collection of exercises, notes, experiments, and projects completed while studying computer science and systems programming. This serves as a repository that documents what I learned concerning low level systems programming.
 
----
+## Topics
 
-## 📌 Purpose
-- Build a **solid foundation** in C.
-- Strengthen understanding of **low-level programming concepts**.
-- Practice **data structures, algorithms, and problem-solving**.
-- Develop **real-world projects** to apply what I learn.
+* C Programming
+* C++
+* Data Structures & Algorithms
+* Problem Solving
+* Computer Architecture
+* Operating Systems
+* Networking
 
----
+## Purpose
 
-## 📂 Repository Structure
-```bash
-C_PRACTICE/
-├── Examples/
-├── projects/
-├── data-structures/
-├── algorithms/
-├── small-programs/
-├── Exercises/
-├── README.md
-├── LICENSE
-├── todays_goals
-├── Makefile
-├── STYLE.md
-└── .gitignore
+This repository documents my learning journey through the foundations of computer science, namely C/C++ language semantics, COMP ARCH and operating systems concepts, and overall how computers work under the hood.
+
+Most of the code in this repository consists of:
+
+* Book exercises, excerpts (K&R, CS:APP)
+* Small implementations
+* Experiments and prototypes
+* Practice problems
+* Study notes
+* Learning projects
+
+## Structure
+
+```text
+computer-systems/
+├── c/
+├── cpp/
+├── dsa/
+├── leetcode/
+├── computer_architecture/
+├── operating_systems/
+├── networking/
+└── projects/
 ```
 
----
+The structure may change as new topics are explored.
 
-## 🚀 Learning Goals
+## Current Focus
 
-- ✅ Master C syntax and semantics.
+Currently studying:
 
-- ✅ Understand pointers, memory allocation, and arrays.
-
-- ✅ Implement core data structures from scratch.
-
-- ✅ Solve LeetCode / HackerRank problems in C.
-
-- ✅ Work with file I/O and system-level programming.
-
-- 🔄 Progress towards building complex applications.
+* C/C++ Programming
+* Computer Architecture
