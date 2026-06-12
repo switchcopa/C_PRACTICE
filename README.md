@@ -29,14 +29,15 @@ Most of the code in this repository consists of:
 
 ```text
 computer-systems/
-├── c/
+├── CS-APP/
+├── K-R/
+├── assembly_x86_64/
 ├── cpp/
 ├── dsa/
-├── leetcode/
-├── computer_architecture/
-├── operating_systems/
-├── networking/
-└── projects/
+├── graphics/
+├── lib/
+├── projects/
+└── small-programs/
 ```
 
 The structure may change as new topics are explored.
