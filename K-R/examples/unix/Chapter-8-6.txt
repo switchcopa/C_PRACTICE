@@ -1,0 +1,88 @@
+A different kind of file system interaction is sometimes called for - determining information
+about a file, not what it contains. A directory-listing program such as the UNIX command ls
+is an example - it prints the names of files in a directory, and, optionally, other information,
+such as sizes, permissions, and so on. The MS-DOS dir command is analogous.
+Since a UNIX directory is just a file, ls need only read it to retrieve the filenames. But is is
+necessary to use a system call to access other information about a file, such as its size. On
+other systems, a system call may be needed even to access filenames; this is the case on MS-
+DOS for instance. What we want is provide access to the information in a relatively system-
+independent way, even though the implementation may be highly system-dependent.
+We will illustrate some of this by writing a program called fsize. fsize is a special form of
+ls that prints the sizes of all files named in its commandline argument list. If one of the files is
+a directory, fsize applies itself recursively to that directory. If there are no arguments at all, it
+processes the current directory.
+Let us begin with a short review of UNIX file system structure. A directory is a file that
+contains a list of filenames and some indication of where they are located. The ``location'' is an
+index into another table called the ``inode list.'' The inode for a file is where all information
+about the file except its name is kept. A directory entry generally consists of only two items,
+the filename and an inode number.
+Regrettably, the format and precise contents of a directory are not the same on all versions of
+the system. So we will divide the task into two pieces to try to isolate the non-portable parts.
+The outer level defines a structure called a Dirent and three routines opendir, readdir, and
+closedir to provide system-independent access to the name and inode number in a directory
+entry. We will write fsize with this interface. Then we will show how to implement these on
+systems that use the same directory structure as Version 7 and System V UNIX; variants are
+left as exercises.
+The Dirent structure contains the inode number and the name. The maximum length of a
+filename component is NAME_MAX, which is a system-dependent value. opendir returns a
+pointer to a structure called DIR, analogous to FILE, which is used by readdir and closedir.
+This information is collected into a file called dirent.h.
+
+#define NAME_MAX 14 /* longest filename component */
+                    /* is system-dependent */
+
+typedef struct { /* portable directory entry */
+    long ino;       /* inode number */
+    char name[NAME_MAX + 1]; /* name + '\0' terminator */
+} Dirent;
+
+DIR *opendir(char *dirname);
+Dirent *readdir(DIR *dfd);
+void closedir(DIR *dfd);
+
+The system call stat takes a filename and returns all of the information in the inode for that
+file, or -1 if there is an error. That is,
+
+char *name;
+struct stat stbuf;
+int stat(char *, strut stat *);
+
+fills the structure stbuf with the inode information for the file name. The structure describing
+the value returned by stat is in <sys/stat.h>, and typically looks like this:
+
+/* inode information returned by stat */
+struct stat
+{
+    dev_t   st_dev;
+    ino_t   st_ino;
+    short   st_mode;
+    short   st_nlink;
+    short   st_uid;
+    short   st_gid;
+    off_t   st_rdev;
+    time_t  st_size;
+    time_t  st_atime;
+    time_t  st_mtime;
+    time_t  st_ctime;
+};
+
+Most of these values are explained by the comment fields. The types like dev_t and ino_t are
+defined in <sys/types.h>, which must be included too.
+The st_mode entry contains a set of flags describing the file. The flag definitions are also
+included in <sys/types.h>; we need only the part that deals with file type:
+
+#define S_IFMT      0160000 
+#define S_IFDIR     0040000
+#define S_IFCHR     0020000
+#define S_IFBLK     0060000
+#define S_IFREG     0010000
+...
+
+Now we are ready to write the program fsize. If the mode obtained from stat indicates that
+a file is not a directory, then the size is at hand and can be printed directly. If the name is a
+directory, however, then we have to process that directory one file at a time; it may in turn
+contain sub-directories, so the process is recursive.
+The main routine deals with command-line arguments; it hands each argument to the function
+fsize.
+
+(ugh too many implementation details I'm tired already)
